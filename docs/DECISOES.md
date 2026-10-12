@@ -1,0 +1,77 @@
+# Decisões registradas
+
+Revisar com o usuário no início de cada sessão. Ao mudar uma decisão,
+não apague: marque como substituída e registre a nova com data.
+
+## D1 — Escala
+Até 40 alunos. Acima disso, a arquitetura e os custos devem ser repensados
+antes de crescer.
+
+## D2 — Orçamento
+Meta: R$ 0/mês. Teto: R$ 50/mês. Qualquer serviço pago precisa de
+aprovação explícita e estimativa de custo.
+
+## D3 — Vídeos do professor: Bunny Stream
+Conteúdo pago, portanto não pode ser YouTube (links vazam).
+Bunny Stream com: autenticação por token (URL assinada com expiração),
+restrição de domínio e rede de volume (mais barata para o Brasil).
+Custo estimado: US$ 2 a 6/mês. Mínimo de US$ 1/mês.
+
+## D4 — Vídeos dos alunos: upload direto para o Bunny  [SUBSTITUÍDA PARCIALMENTE em 2026-10-10 por D4b: a regra de apagar após 60 dias foi cancelada]
+Aluno envia pelo app (upload retomável TUS). Uma Edge Function gera a
+assinatura de upload; a chave nunca vai ao navegador.
+Vídeos de feedback são apagados automaticamente após 60 dias
+(pg_cron no Supabase chamando uma Edge Function).
+Alternativa descartada: link do Drive (professor sai do app e o controle
+de acesso depende do aluno).
+
+## D5 — Login
+Supabase Auth, apenas por convite do professor. Sem cadastro público.
+Perfis: `professor` e `aluno`. Método: e-mail + senha (decidido em 2026-10-12; recomendação inicial era link mágico).
+
+## D6 — Segurança dos dados
+RLS no Supabase: aluno vê só os próprios dados; professor vê todos.
+
+## D7 — Hospedagem: Cloudflare Pages
+A Vercel gratuita não permite uso comercial. Cloudflare Pages é gratuita,
+permite uso comercial e integra com GitHub.
+
+## D8 — Manter o Supabase acordado
+Projetos gratuitos pausam após ~7 dias sem uso. Workflow
+`.github/workflows/supabase-keepalive.yml` faz uma consulta leve a cada
+3 dias. Atenção: o GitHub desativa agendamentos em repositórios sem
+atividade por 60 dias; se isso acontecer, reativar na aba Actions ou
+migrar o ping para um Cron Trigger da Cloudflare.
+
+## D9 — Stack de front
+Vite + React + TypeScript + vite-plugin-pwa. SPA estática (combina com
+Cloudflare Pages); o que precisa de servidor vai para Edge Functions.
+
+## D10 — Trabalho no GitHub
+Uma issue = uma branch = um PR. Issues geradas por `/to-issues`.
+
+## D11 — Modelos
+Orquestrador Sonnet (esforço máximo). Fable não é usado neste projeto
+(ver `docs/AGENTES.md`).
+
+## D4b — Vídeos de feedback ficam arquivados para sempre (2026-10-10)
+Substitui a parte "apagar após 60 dias" da D4. O upload direto para o Bunny continua.
+Exceção (P12): se o aluno ficar 6 meses inativo, tudo dele é apagado, vídeos incluídos.
+Consequência: o armazenamento só cresce, então o custo mensal sobe com o tempo.
+A estimar quando soubermos duração/tamanho dos vídeos (P8) e nº de alunos.
+
+## D2 — nota (2026-10-10)
+Professor ainda não sabe se aceitará algum custo. Manter meta R$ 0 e teto R$ 50 até ele decidir.
+
+## Escopo v1 (2026-10-12)
+Só o básico funcionando: (1) planilha exclusiva por aluno, com campo de anotação de cargas; (2) vídeos com subclasses: treino, consciência, feedback do aluno e feedback do professor. Sem níveis/faixas nem divisão de evolução.
+
+## Investimento total estimado (2026-10-12)
+Estimativa; preços conferidos nos sites em 12/10/2026. Câmbio suposto R$ 5,50/US$.
+| Item | Custo |
+|---|---|
+| Cloudflare Pages, GitHub, Supabase (plano gratuito: 500 MB banco, 50 mil usuários ativos) | R$ 0 |
+| Bunny Stream: armazenamento a partir de US$ 0,01/GB, entrega a partir de US$ 0,005/GB, codificação grátis, mínimo US$ 1/mês | ~US$ 2 a 6/mês (~R$ 11 a 33) |
+| Domínio próprio (opcional) | ~R$ 40/ano (~R$ 3,50/mês) |
+| **Total** | **~R$ 15 a 37/mês, dentro do teto de R$ 50 (D2)** |
+Atenção: com vídeos para sempre (D4b), o armazenamento cresce. Com o limite de 6 vídeos de 1 min por aluno por semana (2026-10-12), no pior caso (40 alunos usando tudo, ~25 MB por vídeo, suposição) são ~300 GB/ano, ou cerca de US$ 3/mês a mais a cada ano. Uso real tende a ser bem menor. Supabase Pro (US$ 25/mês) só se o gratuito deixar de bastar.
