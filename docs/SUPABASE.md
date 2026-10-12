@@ -89,3 +89,16 @@ computador, copie `.env.example` para `.env.local` e preencha as duas.
 - No primeiro acesso o aluno é obrigado a criar a própria senha.
 - "Esqueci a senha": o aluno avisa o professor, que usa **Gerar nova senha**
   na lista de alunos.
+
+## Pendências de segurança (revisões das issues 02 e 03)
+Para a issue 04 (ativar/desativar aluno):
+- Ao desativar, bloquear também no Auth (`ban_duration`) e encerrar as sessões abertas.
+- "Gerar nova senha" também deve encerrar as sessões abertas do aluno
+  (função SQL só para `service_role`: `delete from auth.sessions where user_id = ...`).
+  Conferir antes se o Supabase já faz isso sozinho.
+Para as issues de vídeo:
+- A Edge Function do Bunny confere `e_aluno_ativo()` antes de assinar qualquer URL.
+Para depois:
+- `senha_trocada()` poderia provar que a senha mudou (comparar hash). Hoje o impacto
+  é baixo: com troca pendente, `e_aluno_ativo()` é falso e nenhum conteúdo é liberado.
+- Professor pode desativar outro professor (aceitável com um professor só).

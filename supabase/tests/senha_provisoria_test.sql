@@ -25,8 +25,16 @@ do $$ begin
   end;
 end $$;
 
+-- 3a. Com troca pendente, não é aluno ativo (conteúdo fica bloqueado).
+do $$ begin
+  assert not public.e_aluno_ativo(), 'troca pendente não deveria liberar conteúdo';
+end $$;
+
 -- 3. senha_trocada() zera só a flag do próprio usuário.
 select public.senha_trocada();
+do $$ begin
+  assert public.e_aluno_ativo(), 'após trocar a senha deveria ser aluno ativo';
+end $$;
 reset role;
 do $$ begin
   assert not (select precisa_trocar_senha from public.perfis

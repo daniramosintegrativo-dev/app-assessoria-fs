@@ -21,3 +21,19 @@ $$;
 
 revoke execute on function public.senha_trocada() from public, anon;
 grant execute on function public.senha_trocada() to authenticated;
+
+-- Aluno com troca pendente não é "aluno ativo": as políticas de conteúdo
+-- (que usam e_aluno_ativo) não liberam nada até ele criar a própria senha.
+-- (O próprio perfil continua visível, para o app saber que deve pedir a troca.)
+create or replace function public.e_aluno_ativo()
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select exists (
+    select 1 from public.perfis
+    where id = auth.uid() and papel = 'aluno' and ativo and not precisa_trocar_senha
+  );
+$$;
