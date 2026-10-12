@@ -1,0 +1,34 @@
+.inicio {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--espaco);
+  padding: var(--espaco);
+  text-align: center;
+  border-top: 4px solid var(--cor-laranja);
+}
+
+.inicio__logo {
+  width: min(240px, 60vw);
+  height: auto;
+  border-radius: var(--raio);
+  border: var(--borda-fina) solid var(--cor-indigo);
+}
+
+.inicio__titulo {
+  margin: 0;
+  font-size: 1.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--cor-marinho);
+  padding-bottom: 8px;
+  border-bottom: var(--borda-fina) solid var(--cor-laranja);
+}
+
+.inicio__texto {
+  margin: 0;
+  max-width: 32ch;
+  color: var(--cor-texto-secundario);
+}

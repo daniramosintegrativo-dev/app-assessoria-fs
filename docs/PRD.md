@@ -1,7 +1,7 @@
 # PRD — App Assessoria FS
 
-Status: rascunho. Resolver as "Perguntas em aberto" com o professor
-(via `/grill-me`) antes de rodar `/to-issues`.
+Status: perguntas P1 a P12 respondidas pelo professor (2026-10-12).
+Issues criadas no GitHub (01 a 20).
 
 ## Problema
 O professor acompanha alunos à distância com planilhas, arquivos Word e
@@ -90,7 +90,7 @@ Fica no arquivo (cadastro) de cada aluno.
 
 - **P8:** cada vídeo de feedback tem no máximo 1 minuto e cada aluno pode enviar até 6 por semana.
 
-## Perguntas em aberto (para o professor)
+## Perguntas originais (todas respondidas em 2026-10-12; ver "Respostas do professor")
 - **P1 — Planejamento de carga:** o que o aluno registra? Só vê a carga
   prescrita ou também anota a carga que usou em cada série?
 - **P2 — Estrutura do treino:** como é hoje um treino típico? (Pedir um
