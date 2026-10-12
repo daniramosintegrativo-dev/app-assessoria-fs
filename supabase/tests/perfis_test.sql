@@ -15,8 +15,23 @@ do $$ begin
     'metadados não podem promover a professor';
 end $$;
 
--- O professor é promovido manualmente pelo dono do banco (painel do Supabase).
-update public.perfis set papel = 'professor' where id = '00000000-0000-0000-0000-00000000000a';
+-- 1b. Conta nova nasce desativada (sem acesso até o convite ativar).
+do $$ begin
+  assert not exists (select 1 from public.perfis where ativo), 'conta nova deveria nascer desativada';
+end $$;
+
+-- 1c. Conta desativada recém-criada não vê nada.
+set role authenticated;
+set request.jwt.claims = '{"sub":"00000000-0000-0000-0000-000000000001"}';
+do $$ begin
+  assert (select count(*) from public.perfis) = 0, 'conta não ativada não deveria ver nada';
+  assert not public.e_aluno_ativo(), 'conta não ativada não é aluno ativo';
+end $$;
+reset role;
+
+-- O professor é promovido manualmente e os alunos são ativados (convite/painel).
+update public.perfis set papel = 'professor', ativo = true where id = '00000000-0000-0000-0000-00000000000a';
+update public.perfis set ativo = true where papel = 'aluno';
 
 -- 2. RLS ligado na tabela.
 do $$ begin
@@ -39,6 +54,8 @@ reset role;
 set role authenticated;
 set request.jwt.claims = '{"sub":"00000000-0000-0000-0000-000000000001"}';
 do $$ begin
+  assert public.e_aluno_ativo(), 'aluno ativado deveria ser aluno ativo';
+  assert not public.e_professor(), 'aluno não é professor';
   assert (select count(*) from public.perfis) = 1, 'aluno deveria ver só 1 perfil';
   assert (select id from public.perfis) = '00000000-0000-0000-0000-000000000001', 'aluno deveria ver o próprio perfil';
 end $$;
@@ -49,6 +66,21 @@ do $$ declare n int; begin
     update public.perfis set papel = 'professor' where id = auth.uid();
     raise exception 'aluno não deveria poder mudar o papel';
   exception when insufficient_privilege then null;
+  end;
+  begin
+    update public.perfis set id = '00000000-0000-0000-0000-000000000009' where id = auth.uid();
+    raise exception 'aluno não deveria poder mudar o id';
+  exception when insufficient_privilege then null;
+  end;
+  begin
+    update public.perfis set criado_em = now() where id = auth.uid();
+    raise exception 'aluno não deveria poder mudar criado_em';
+  exception when insufficient_privilege then null;
+  end;
+  begin
+    perform public.criar_perfil_para_nova_conta();
+    raise exception 'aluno não deveria executar a função do gatilho';
+  exception when insufficient_privilege or feature_not_supported then null;
   end;
   update public.perfis set ativo = false where id = auth.uid();
   get diagnostics n = row_count;
@@ -81,12 +113,21 @@ do $$ declare n int; begin
     raise exception 'professor não deveria mudar papel pela API';
   exception when insufficient_privilege then null;
   end;
+  begin
+    update public.perfis set ativo = false where id = auth.uid();
+    raise exception 'professor não deveria conseguir se desativar';
+  exception when insufficient_privilege then null;
+  end;
+  update public.perfis set nome = 'Professor' where id = auth.uid();
+  get diagnostics n = row_count;
+  assert n = 1, 'professor deveria poder mudar o próprio nome';
 end $$;
 
 -- 8. Aluno desativado não vê nem o próprio perfil.
 set request.jwt.claims = '{"sub":"00000000-0000-0000-0000-000000000002"}';
 do $$ begin
   assert (select count(*) from public.perfis) = 0, 'aluno desativado não deveria ver nada';
+  assert not public.e_aluno_ativo(), 'aluno desativado não é aluno ativo';
 end $$;
 
 -- 9. Professor desativado perde os poderes de professor.
@@ -111,6 +152,8 @@ end $$;
 do $$ begin
   assert not has_function_privilege('anon', 'public.e_professor()', 'execute'),
     'anon não deveria executar e_professor';
+  assert not has_function_privilege('anon', 'public.e_aluno_ativo()', 'execute'),
+    'anon não deveria executar e_aluno_ativo';
 end $$;
 
 select 'OK: todos os testes de perfis passaram' as resultado;
