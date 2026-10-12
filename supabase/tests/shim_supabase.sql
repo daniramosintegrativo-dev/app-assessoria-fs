@@ -14,7 +14,8 @@ create function auth.uid() returns uuid language sql stable as $$
   select nullif(current_setting('request.jwt.claims', true)::jsonb ->> 'sub', '')::uuid
 $$;
 grant execute on function auth.uid() to anon, authenticated, service_role;
--- Supabase dá privilégios amplos por padrão nas tabelas do schema public.
+-- Pior caso: privilégios amplos por padrão em public (opção "Automatically expose
+-- new tables" ligada). A migração precisa ser segura mesmo assim.
 alter default privileges in schema public grant all on tables to anon, authenticated, service_role;
 alter default privileges in schema public grant all on functions to anon, authenticated, service_role;
 grant usage on schema public to anon, authenticated, service_role;

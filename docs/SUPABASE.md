@@ -3,6 +3,12 @@
 As mudanças no banco ficam em `supabase/migrations/`, uma por arquivo, em ordem
 de data. Cada uma é aplicada UMA vez, na ordem.
 
+## Projeto (criado em 2026-10-12)
+- Organização "Físico Sagrado", plano Free. Projeto `fisico-sagrado`, região São Paulo.
+- Enable Data API: ligado. Automatically expose new tables: DESLIGADO
+  (cada migração libera o acesso explicitamente). Enable automatic RLS: ligado.
+- A senha do banco fica só com o dono da conta, nunca no repositório.
+
 ## Antes de tudo: desligar o cadastro público (obrigatório)
 No painel do Supabase: **Authentication** → **Sign In / Providers** (o nome
 pode variar um pouco):

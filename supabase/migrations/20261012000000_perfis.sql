@@ -23,7 +23,10 @@ create table public.perfis (
 alter table public.perfis enable row level security;
 
 -- Privilégios: começa do zero e libera só o necessário.
+-- (O projeto foi criado com "Automatically expose new tables" desligado.)
 revoke all on table public.perfis from anon, authenticated;
+-- service_role: usada só nas Edge Functions (ex.: convite da issue 03), nunca no front.
+grant all on table public.perfis to service_role;
 grant select on table public.perfis to authenticated;
 grant update (nome, ativo) on table public.perfis to authenticated;
 
