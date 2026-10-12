@@ -49,6 +49,21 @@ aprender os movimentos e mandar feedback.
   saúde tratados como sensíveis; aluno pode pedir exclusão.
 - Custo dentro de D2.
 
+## PAR-Q (questionário de prontidão para atividade física) — adicionado 2026-10-12
+Fica no arquivo (cadastro) de cada aluno.
+- O aluno preenche no app no primeiro acesso e a resposta é guardada com data. Pode refazer quando o professor pedir.
+- Perguntas (rascunho baseado no PAR-Q brasileiro padrão; texto exato a confirmar com o professor), todas de sim/não:
+  1. Algum médico já disse que você possui algum problema de coração e que só deveria realizar atividade física supervisionada por profissionais de saúde?
+  2. Você sente dores no peito quando pratica atividade física?
+  3. No último mês, você sentiu dores no peito quando praticava atividade física?
+  4. Você apresenta desequilíbrio devido a tontura e/ou perda de consciência?
+  5. Você possui algum problema ósseo ou articular que poderia ser piorado pela atividade física?
+  6. Você toma atualmente algum medicamento para pressão arterial e/ou problema de coração?
+  7. Sabe de alguma outra razão pela qual você não deveria praticar atividade física?
+- Se alguma resposta for "sim", o professor vê um alerta no cadastro do aluno.
+- Dado de saúde = sensível (LGPD): só o aluno e o professor veem; entra na regra de apagar tudo após 6 meses de inatividade; consentimento explícito antes de enviar.
+- A decidir: o "sim" apenas alerta o professor, ou bloqueia a ficha até liberação?
+
 ## Fora do escopo (v1)
 - Pagamentos e cobrança (continuam fora do app).
 - Chat em tempo real.

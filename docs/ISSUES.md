@@ -32,3 +32,6 @@ Itens marcados [SEG] passam pelo agente `revisor-seguranca`.
 17. [SEG] Consentimento de uso de imagem no primeiro envio de vídeo; aluno pode pedir exclusão.
 18. [SEG] Apagar tudo de aluno inativo há 6 meses (aviso por e-mail 30 dias antes).
 19. Aviso automático a cada 3 dias para o Supabase não pausar.
+
+## Cadastro do aluno
+20. [SEG] PAR-Q: aluno preenche no primeiro acesso (7 perguntas sim/não), resposta guardada no arquivo do aluno com data; alerta ao professor se houver "sim"; dado sensível, só aluno e professor veem.
