@@ -1,0 +1,29 @@
+/* Tokens de cor e forma (ver docs/DESIGN.md). Tema claro, bordas finas nas cores da logo. */
+:root {
+  --cor-fundo: #ffffff;
+  --cor-superficie: #ffffff;
+  --cor-texto: #030b16;
+  --cor-texto-secundario: #4a5160;
+  --cor-marinho: #030b16;
+  --cor-laranja: #e7612e;
+  --cor-indigo: #8c82eb;
+  --borda-fina: 1px;
+  --raio: 8px;
+  --espaco: 16px;
+
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  line-height: 1.5;
+  color: var(--cor-texto);
+  background: var(--cor-fundo);
+  -webkit-font-smoothing: antialiased;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+  background: var(--cor-fundo);
+}
