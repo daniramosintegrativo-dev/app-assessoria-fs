@@ -75,3 +75,11 @@ Estimativa; preços conferidos nos sites em 12/10/2026. Câmbio suposto R$ 5,50/
 | Domínio próprio (opcional) | ~R$ 40/ano (~R$ 3,50/mês) |
 | **Total** | **~R$ 15 a 37/mês, dentro do teto de R$ 50 (D2)** |
 Atenção: com vídeos para sempre (D4b), o armazenamento cresce. Com o limite de 6 vídeos de 1 min por aluno por semana (2026-10-12), no pior caso (40 alunos usando tudo, ~25 MB por vídeo, suposição) são ~300 GB/ano, ou cerca de US$ 3/mês a mais a cada ano. Uso real tende a ser bem menor. Supabase Pro (US$ 25/mês) só se o gratuito deixar de bastar.
+
+## D12 — Contas nascem desativadas (2026-10-12)
+Toda conta nova no Supabase vira perfil `aluno` com `ativo = false`. Só o convite
+do professor (issue 03) ou o painel ativa. O cadastro público do Supabase fica
+desligado, e essa regra é a segunda proteção caso alguém religue por engano.
+O professor não pode desativar a si mesmo pelo app. Toda tabela de conteúdo usa
+`e_professor()` ou `e_aluno_ativo()` nas regras de acesso.
+Origem: revisão de segurança da issue 02.
