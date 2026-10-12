@@ -45,4 +45,4 @@ testes de `supabase/tests/`. Não toca no Supabase de verdade.
 ## Migrações aplicadas
 | Arquivo | O que faz | Aplicada no Supabase? |
 |---|---|---|
-| `20261012000000_perfis.sql` | Perfis professor/aluno com RLS (issue 02) | pendente |
+| `20261012000000_perfis.sql` | Perfis professor/aluno com RLS (issue 02) | sim, 2026-10-12 |
