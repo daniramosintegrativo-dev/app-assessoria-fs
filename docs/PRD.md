@@ -86,7 +86,7 @@ Fica no arquivo (cadastro) de cada aluno.
 - **P12:** mantém o histórico enquanto ativo; após 6 meses de inatividade, TUDO é apagado (planilha, conversa e vídeos de feedback). Confirmado em 2026-10-12.
 - **P3:** campo de anotação simples, tipo bloco de notas, dentro do app (preferido). Sem depender do Word.
 - **P4:** v1 só o básico. Sem divisão por níveis/faixas/evolução. Prioridade: (1) local da planilha; (2) vídeos e subclasses: treino, consciência, feedback do aluno para o professor, feedback do professor para o aluno.
-- **P7:** login por e-mail e senha (convite do professor continua obrigatório).
+- **P7:** login por e-mail e senha (convite do professor continua obrigatório). Sem e-mail automático: senha provisória enviada pelo professor (D13).
 
 - **P8:** cada vídeo de feedback tem no máximo 1 minuto e cada aluno pode enviar até 6 por semana.
 
