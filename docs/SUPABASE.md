@@ -46,3 +46,46 @@ testes de `supabase/tests/`. Não toca no Supabase de verdade.
 | Arquivo | O que faz | Aplicada no Supabase? |
 |---|---|---|
 | `20261012000000_perfis.sql` | Perfis professor/aluno com RLS (issue 02) | sim, 2026-10-12 |
+| `20261013000000_senha_provisoria.sql` | Marca de troca obrigatória de senha e `senha_trocada()` (issue 03) | pendente |
+
+## Exigir senha de 8+ caracteres (obrigatório)
+O app já exige 8 caracteres na tela, mas a regra de verdade fica no Supabase:
+**Authentication** → **Sign In / Providers** → **Email** → **Minimum password
+length** = `8` (o padrão é 6). Salve.
+
+## Edge Function gerenciar-aluno: como publicar pelo painel
+Ela cadastra aluno, gera senha provisória e lista os alunos (só o professor
+ativo consegue chamar). Passo a passo:
+1. No repositório, rode `npm run build:function`. Isso gera o arquivo único
+   `supabase/functions/gerenciar-aluno/PAINEL.ts` (função + módulo
+   `_shared/aluno.ts` juntos; o editor do painel não garante vários arquivos).
+   O `PAINEL.ts` também fica no GitHub, pronto para copiar.
+2. No painel: **Edge Functions** → **Deploy a new function** → **Via Editor**.
+3. Nome da função: `gerenciar-aluno` (exatamente assim).
+4. Apague o código de exemplo, cole o conteúdo inteiro de `PAINEL.ts` e clique
+   em **Deploy**.
+5. Não precisa criar segredos: `SUPABASE_URL`, `SUPABASE_ANON_KEY` e
+   `SUPABASE_SERVICE_ROLE_KEY` são injetadas pelo Supabase.
+6. Deixe ligada a opção de verificar o JWT (padrão). Ela é uma camada extra;
+   a função também confere se quem chama é professor ativo.
+Sempre que mudar `supabase/functions/`, rode `npm run build:function` e
+publique de novo.
+
+## Variáveis na Cloudflare
+Em **Cloudflare Pages** → projeto → **Settings** → **Variables and Secrets**
+(vale para Production e Preview), crie:
+- `VITE_SUPABASE_URL`: no Supabase, **Project Settings** → **Data API** →
+  "Project URL".
+- `VITE_SUPABASE_ANON_KEY`: **Project Settings** → **API Keys** → chave
+  **publishable** (começa com `sb_publishable_`) ou, no painel antigo, a
+  `anon` public.
+NUNCA use a chave `secret` / `service_role` aqui: ela daria acesso total ao
+banco. Depois de salvar, faça um novo deploy para valer. Para rodar no seu
+computador, copie `.env.example` para `.env.local` e preencha as duas.
+
+## Como o acesso funciona (D13)
+- Professor cadastra o aluno no app (nome + e-mail) e recebe uma senha
+  provisória, mostrada uma única vez. Envie pelo WhatsApp.
+- No primeiro acesso o aluno é obrigado a criar a própria senha.
+- "Esqueci a senha": o aluno avisa o professor, que usa **Gerar nova senha**
+  na lista de alunos.
