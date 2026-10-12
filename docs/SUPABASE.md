@@ -1,0 +1,28 @@
+# Supabase — como aplicar o banco
+
+As mudanças no banco ficam em `supabase/migrations/`, uma por arquivo, em ordem
+de data. Cada uma é aplicada UMA vez, na ordem.
+
+## Aplicar uma migração (pelo painel, sem instalar nada)
+1. Abra o projeto em https://supabase.com/dashboard.
+2. Menu da esquerda: **SQL Editor** → **New query**.
+3. Cole o conteúdo inteiro do arquivo da migração e clique em **Run**.
+4. Deve aparecer "Success. No rows returned".
+
+## Tornar o professor administrador (uma vez só)
+Toda conta nova nasce como **aluno**. Para promover o professor:
+1. Crie a conta dele em **Authentication** → **Users** → **Add user**.
+2. No **SQL Editor**, rode (troque o e-mail e o nome):
+
+`update public.perfis set papel = 'professor', nome = 'Nome do Professor' where id = (select id from auth.users where email = 'email@do.professor');`
+
+Deve aparecer "Success. 1 row affected" (ou "1 row").
+
+## Testar as regras de acesso localmente
+`npm run test:db` cria um Postgres temporário, aplica as migrações e roda os
+testes de `supabase/tests/`. Não toca no Supabase de verdade.
+
+## Migrações aplicadas
+| Arquivo | O que faz | Aplicada no Supabase? |
+|---|---|---|
+| `20261012000000_perfis.sql` | Perfis professor/aluno com RLS (issue 02) | pendente |
