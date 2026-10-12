@@ -1,0 +1,101 @@
+import { render, screen, within } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import { criarClienteFalso } from '../test/clienteFalso'
+import AreaProfessor from './AreaProfessor'
+
+const ana = { id: 'id-ana', nome: 'Ana Souza', email: 'ana@x.com', ativo: true }
+
+// Responde a cada ação da Edge Function.
+function responder(falso: ReturnType<typeof criarClienteFalso>['falso'], extra: Record<string, unknown> = {}) {
+  falso.functions.invoke.mockImplementation(async (_nome: string, { body }: { body: { acao: string } }) => {
+    if (body.acao in extra) return extra[body.acao]
+    if (body.acao === 'listar') return { data: { alunos: [ana] }, error: null }
+    return { data: {}, error: null }
+  })
+}
+
+afterEach(() => vi.restoreAllMocks())
+
+describe('AreaProfessor', () => {
+  it('lista os alunos com nome, e-mail e situação', async () => {
+    const { cliente, falso } = criarClienteFalso()
+    responder(falso)
+    render(<AreaProfessor cliente={cliente} />)
+    const item = await screen.findByRole('listitem')
+    expect(item).toHaveTextContent('Ana Souza')
+    expect(item).toHaveTextContent('ana@x.com')
+    expect(item).toHaveTextContent('Ativo')
+    expect(falso.functions.invoke).toHaveBeenCalledWith('gerenciar-aluno', { body: { acao: 'listar' } })
+  })
+
+  it('cadastra aluno e mostra a senha provisória', async () => {
+    const { cliente, falso } = criarClienteFalso()
+    responder(falso, { criar: { data: { id: 'novo', senha_provisoria: 'Abc23456xyz' }, error: null } })
+    render(<AreaProfessor cliente={cliente} />)
+    await userEvent.type(screen.getByLabelText('Nome'), 'Bia Lima')
+    await userEvent.type(screen.getByLabelText('E-mail'), 'bia@x.com')
+    await userEvent.click(screen.getByRole('button', { name: 'Cadastrar aluno' }))
+    expect(falso.functions.invoke).toHaveBeenCalledWith('gerenciar-aluno', {
+      body: { acao: 'criar', nome: 'Bia Lima', email: 'bia@x.com' },
+    })
+    const caixa = await screen.findByRole('status')
+    expect(caixa).toHaveTextContent('Abc23456xyz')
+    expect(caixa).toHaveTextContent('WhatsApp')
+    expect(caixa).toHaveTextContent('só desta vez')
+    // Formulário limpo para o próximo aluno.
+    expect(screen.getByLabelText('Nome')).toHaveValue('')
+  })
+
+  it('copia a senha para a área de transferência', async () => {
+    const { cliente, falso } = criarClienteFalso()
+    responder(falso, { criar: { data: { id: 'novo', senha_provisoria: 'Abc23456xyz' }, error: null } })
+    const usuario = userEvent.setup()
+    const escrever = vi.spyOn(navigator.clipboard, 'writeText').mockResolvedValue()
+    render(<AreaProfessor cliente={cliente} />)
+    await usuario.type(screen.getByLabelText('Nome'), 'Bia')
+    await usuario.type(screen.getByLabelText('E-mail'), 'bia@x.com')
+    await usuario.click(screen.getByRole('button', { name: 'Cadastrar aluno' }))
+    await usuario.click(await screen.findByRole('button', { name: 'Copiar' }))
+    expect(escrever).toHaveBeenCalledWith('Abc23456xyz')
+    expect(await screen.findByText('Copiado!')).toBeInTheDocument()
+  })
+
+  it('mostra o erro amigável quando o e-mail já existe', async () => {
+    const { cliente, falso } = criarClienteFalso()
+    responder(falso, {
+      criar: { data: null, error: { context: { json: async () => ({ erro: 'Já existe uma conta com esse e-mail.' }) } } },
+    })
+    render(<AreaProfessor cliente={cliente} />)
+    await userEvent.type(screen.getByLabelText('Nome'), 'Ana')
+    await userEvent.type(screen.getByLabelText('E-mail'), 'ana@x.com')
+    await userEvent.click(screen.getByRole('button', { name: 'Cadastrar aluno' }))
+    expect(await screen.findByRole('alert')).toHaveTextContent('Já existe uma conta com esse e-mail.')
+    expect(screen.queryByRole('status')).not.toBeInTheDocument()
+  })
+
+  it('gera nova senha provisória para um aluno da lista', async () => {
+    const { cliente, falso } = criarClienteFalso()
+    responder(falso, { nova_senha: { data: { senha_provisoria: 'Nova23456xy' }, error: null } })
+    vi.spyOn(window, 'confirm').mockReturnValue(true)
+    render(<AreaProfessor cliente={cliente} />)
+    const item = await screen.findByRole('listitem')
+    await userEvent.click(within(item).getByRole('button', { name: /nova senha/i }))
+    expect(falso.functions.invoke).toHaveBeenCalledWith('gerenciar-aluno', {
+      body: { acao: 'nova_senha', id: 'id-ana' },
+    })
+    expect(await screen.findByRole('status')).toHaveTextContent('Nova23456xy')
+  })
+
+  it('não gera nova senha se o professor cancelar', async () => {
+    const { cliente, falso } = criarClienteFalso()
+    responder(falso)
+    vi.spyOn(window, 'confirm').mockReturnValue(false)
+    render(<AreaProfessor cliente={cliente} />)
+    const item = await screen.findByRole('listitem')
+    await userEvent.click(within(item).getByRole('button', { name: /nova senha/i }))
+    expect(falso.functions.invoke).not.toHaveBeenCalledWith('gerenciar-aluno', {
+      body: { acao: 'nova_senha', id: 'id-ana' },
+    })
+  })
+})
