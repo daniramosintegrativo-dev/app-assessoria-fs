@@ -21,13 +21,14 @@ flexibilidade, mobilidade e meditação). O professor administra, o aluno acessa
 ## Fluxo de trabalho
 DIALOGAR → PLANEJAR → CODAR, usando as skills:
 - Dialogar: `/grill-me` (ou `/grill-with-docs`) até não haver ambiguidade.
-- Planejar: `/to-prd` atualiza o PRD; `/to-issues` quebra em issues de
-  fatia vertical no GitHub.
+- Planejar: `/to-spec` transforma a conversa em especificação (issue no
+  GitHub) e atualiza o PRD; `/to-tickets` quebra em issues de fatia vertical.
 - Codar: uma issue = uma branch = um PR. Implementar com `/tdd`.
 Detalhes em `docs/SKILLS.md`.
 
 ## Multiagentes
-Orquestrador: Sonnet em esforço máximo. Delegue conforme `docs/AGENTES.md`.
+Orquestrador: Opus (D11, revisada em 2026-10-13). Delegue a subagentes com o
+modelo adequado a cada tarefa, conforme `docs/AGENTES.md`.
 Nunca use um modelo mais caro do que a tarefa exige, nem um mais fraco
 que vá gerar retrabalho.
 
@@ -51,3 +52,13 @@ Justificativas em `docs/DECISOES.md`.
 - `docs/DECISOES.md` — decisões tomadas e seus porquês
 - `docs/AGENTES.md` — qual modelo faz o quê
 - `docs/SKILLS.md` — skills a instalar e como usar
+
+## Agent skills
+
+### Issue tracker
+
+Issues no GitHub (`daniramosintegrativo-dev/app-assessoria-fs`). See `docs/agents/issue-tracker.md`.
+
+### Domain docs
+
+Single-context (`GLOSSARY.md` e `docs/adr/` na raiz, criados quando precisar). See `docs/agents/domain.md`.
