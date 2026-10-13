@@ -53,7 +53,18 @@ O app já exige 8 caracteres na tela, mas a regra de verdade fica no Supabase:
 **Authentication** → **Sign In / Providers** → **Email** → **Minimum password
 length** = `8` (o padrão é 6). Salve.
 
-## Edge Function gerenciar-aluno: como publicar pelo painel
+## Edge Functions: publicação automática (recomendado)
+O workflow `.github/workflows/deploy-functions.yml` publica as funções sempre
+que algo em `supabase/functions/` muda na `main` (ou ao rodar manualmente em
+GitHub → Actions → deploy-functions → Run workflow).
+Configuração única:
+1. Supabase → avatar (canto superior direito) → **Account preferences** →
+   **Access Tokens** → **Generate new token** (nome: `github-deploy`). Copie.
+2. GitHub → repositório → **Settings** → **Secrets and variables** →
+   **Actions** → **New repository secret**: nome `SUPABASE_ACCESS_TOKEN`,
+   valor = o token. O token não fica em nenhum outro lugar.
+
+## Edge Function gerenciar-aluno: como publicar pelo painel (alternativa manual)
 Ela cadastra aluno, gera senha provisória e lista os alunos (só o professor
 ativo consegue chamar). Passo a passo:
 1. No repositório, rode `npm run build:function`. Isso gera o arquivo único
