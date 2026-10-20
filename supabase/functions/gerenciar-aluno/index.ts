@@ -1,5 +1,5 @@
 // Edge Function gerenciar-aluno (issue 03): só o professor ativo chama.
-// Ações: criar aluno, gerar nova senha provisória, listar alunos.
+// Ações: criar aluno, gerar nova senha provisória, ativar/desativar, listar alunos.
 // As chaves vêm do ambiente (o Supabase injeta); nada fica no código.
 import { createClient } from 'npm:@supabase/supabase-js@2.117.3'
 import { gerarSenhaProvisoria, lerPedido } from '../_shared/aluno.ts'
@@ -86,14 +86,17 @@ Deno.serve(async (req) => {
       return responder({ id: data.user.id, senha_provisoria: senha })
     }
 
-    if (pedido.acao === 'nova_senha') {
+    if (pedido.acao === 'nova_senha' || pedido.acao === 'desativar' || pedido.acao === 'ativar') {
       const { data: alvo } = await admin
         .from('perfis')
         .select('papel')
         .eq('id', pedido.id)
         .maybeSingle()
-      // Só alunos: a senha do professor não é gerada por aqui.
+      // Só alunos: professor não é gerenciado por aqui (nem a própria conta).
       if (!alvo || alvo.papel !== 'aluno') return responder({ erro: 'Aluno não encontrado.' }, 404)
+    }
+
+    if (pedido.acao === 'nova_senha') {
       const senha = gerarSenhaProvisoria()
       // Liga a troca obrigatória ANTES de mudar a senha (falha no meio não deixa brecha).
       const { error: erroFlag } = await admin
@@ -103,7 +106,46 @@ Deno.serve(async (req) => {
       if (erroFlag) return responder({ erro: 'Não foi possível gerar a senha.' }, 500)
       const { error } = await admin.auth.admin.updateUserById(pedido.id, { password: senha })
       if (error) return responder({ erro: 'Não foi possível gerar a senha.' }, 500)
-      return responder({ senha_provisoria: senha })
+      // Derruba quem já estava logado com a senha antiga. Se falhar, a senha já
+      // mudou: devolve mesmo assim e avisa o professor.
+      const { error: erroSessoes } = await admin.rpc('encerrar_sessoes', { alvo: pedido.id })
+      return responder(
+        erroSessoes
+          ? { senha_provisoria: senha, aviso: 'sessoes_nao_encerradas' }
+          : { senha_provisoria: senha },
+      )
+    }
+
+    if (pedido.acao === 'desativar') {
+      // 1º o perfil: o RLS já bloqueia todo o conteúdo na hora. Se algo falhar
+      // depois, o perfil inativo é o estado seguro.
+      const { error: erroPerfil } = await admin
+        .from('perfis')
+        .update({ ativo: false })
+        .eq('id', pedido.id)
+      if (erroPerfil) return responder({ erro: 'Não foi possível desativar o aluno.' }, 500)
+      // 2º bloqueia o login no Auth (~100 anos); 3º derruba as sessões abertas.
+      const { error: erroBan } = await admin.auth.admin.updateUserById(pedido.id, {
+        ban_duration: '876000h',
+      })
+      if (erroBan) return responder({ erro: 'Não foi possível desativar o aluno.' }, 500)
+      const { error: erroSessoes } = await admin.rpc('encerrar_sessoes', { alvo: pedido.id })
+      if (erroSessoes) return responder({ erro: 'Não foi possível desativar o aluno.' }, 500)
+      return responder({ ok: true })
+    }
+
+    if (pedido.acao === 'ativar') {
+      // Tira o bloqueio do Auth antes de reativar o perfil.
+      const { error: erroBan } = await admin.auth.admin.updateUserById(pedido.id, {
+        ban_duration: 'none',
+      })
+      if (erroBan) return responder({ erro: 'Não foi possível reativar o aluno.' }, 500)
+      const { error: erroPerfil } = await admin
+        .from('perfis')
+        .update({ ativo: true })
+        .eq('id', pedido.id)
+      if (erroPerfil) return responder({ erro: 'Não foi possível reativar o aluno.' }, 500)
+      return responder({ ok: true })
     }
 
     // listar: nome/ativo vêm de perfis; o e-mail só existe no Auth.
