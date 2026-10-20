@@ -6,7 +6,7 @@ Definições dos subagentes em `.claude/agents/`.
 
 | Agente | Modelo | Quando usar |
 |---|---|---|
-| Orquestrador (sessão principal) | Sonnet, esforço máximo | Conversa com o usuário, grilling, planejamento, delegação, integração |
+| Orquestrador (sessão principal) | Opus (D11b) | Conversa com o usuário, grilling, planejamento, delegação, integração |
 | `explorador` | Haiku | Ler/buscar no código e na documentação, resumir arquivos, achar onde algo está |
 | `documentador` | Haiku | Atualizar docs, descrição de PR, changelog, textos da interface já definidos |
 | `implementador` | Sonnet | Implementar uma issue com TDD (front, Edge Functions, SQL simples) |

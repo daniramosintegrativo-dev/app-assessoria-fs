@@ -50,7 +50,7 @@ Cloudflare Pages); o que precisa de servidor vai para Edge Functions.
 ## D10 — Trabalho no GitHub
 Uma issue = uma branch = um PR. Issues geradas por `/to-issues`.
 
-## D11 — Modelos
+## D11 — Modelos  [REVISADA em 2026-10-13: ver D11b]
 Orquestrador Sonnet (esforço máximo). Fable não é usado neste projeto
 (ver `docs/AGENTES.md`).
 
@@ -83,3 +83,18 @@ desligado, e essa regra é a segunda proteção caso alguém religue por engano.
 O professor não pode desativar a si mesmo pelo app. Toda tabela de conteúdo usa
 `e_professor()` ou `e_aluno_ativo()` nas regras de acesso.
 Origem: revisão de segurança da issue 02.
+
+## D13 — Acesso sem e-mail automático (2026-10-12)
+O Supabase gratuito praticamente não envia e-mails para quem não é da equipe.
+Decisão (opção A): o professor cadastra o aluno no app (nome + e-mail); o app gera
+uma senha provisória que o professor envia pelo WhatsApp; no primeiro acesso o
+aluno é obrigado a criar a própria senha. "Esqueci a senha": o aluno pede ao
+professor, que gera nova senha provisória no app. Custo R$ 0.
+Pode evoluir depois para convite/recuperação por e-mail (serviço de e-mail +
+domínio próprio, ~R$ 40/ano) sem perder nada.
+
+## D11b — Orquestrador Opus (2026-10-13)
+Substitui o orquestrador Sonnet da D11. Por orientação do mentor (Tiago), a
+sessão principal usa Opus 5.5 para planejar e coordenar, e delega a
+subagentes com o modelo mais adequado a cada tarefa (tabela em
+`docs/AGENTES.md`). Fable continua fora.
