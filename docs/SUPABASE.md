@@ -60,7 +60,10 @@ que algo em `supabase/functions/` muda na `main` (ou ao rodar manualmente em
 GitHub → Actions → deploy-functions → Run workflow).
 Configuração única:
 1. Supabase → avatar (canto superior direito) → **Account preferences** →
-   **Access Tokens** → **Generate new token** (nome: `github-deploy`). Copie.
+   **Access Tokens** → **Generate new token** (nome: `github-deploy`).
+   Escopo: **Project** → projeto `fisico-sagrado`; permissões: só
+   **Edge Functions = Read-write**, todo o resto **None**. Copie.
+   Se pedir validade, prefira uma data e troque o token quando vencer.
 2. GitHub → repositório → **Settings** → **Secrets and variables** →
    **Actions** → **New repository secret**: nome `SUPABASE_ACCESS_TOKEN`,
    valor = o token. O token não fica em nenhum outro lugar.
