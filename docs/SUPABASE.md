@@ -47,7 +47,7 @@ testes de `supabase/tests/`. Não toca no Supabase de verdade.
 |---|---|---|
 | `20261012000000_perfis.sql` | Perfis professor/aluno com RLS (issue 02) | sim, 2026-10-12 |
 | `20261013000000_senha_provisoria.sql` | Marca de troca obrigatória de senha e `senha_trocada()` (issue 03) | sim, 2026-10-13 |
-| `20261020000000_keepalive.sql` | Tabela mínima que o workflow keepalive consulta (issue 19) | pendente |
+| `20261020000000_keepalive.sql` | Tabela mínima que o workflow keepalive consulta (issue 19) | sim, 2026-10-20 |
 
 ## Exigir senha de 8+ caracteres (obrigatório)
 O app já exige 8 caracteres na tela, mas a regra de verdade fica no Supabase:
