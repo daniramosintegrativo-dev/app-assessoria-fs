@@ -177,4 +177,16 @@ describe('AreaProfessor', () => {
     expect(caixa).toHaveTextContent('Nova23456xy')
     expect(caixa).toHaveTextContent('sessões abertas')
   })
+
+  it('avisa quando desativou mas as sessões abertas não foram encerradas', async () => {
+    const { cliente, falso } = criarClienteFalso()
+    responder(falso, { desativar: { data: { ok: true, aviso: 'sessoes_nao_encerradas' }, error: null } })
+    vi.spyOn(window, 'confirm').mockReturnValue(true)
+    render(<AreaProfessor cliente={cliente} />)
+    const item = await screen.findByRole('listitem')
+    await userEvent.click(within(item).getByRole('button', { name: 'Desativar' }))
+    const aviso = await screen.findByRole('status')
+    expect(aviso).toHaveTextContent('acesso foi bloqueado')
+    expect(aviso).toHaveTextContent('até 1 hora')
+  })
 })

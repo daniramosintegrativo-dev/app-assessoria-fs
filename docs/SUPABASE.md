@@ -49,6 +49,8 @@ testes de `supabase/tests/`. Não toca no Supabase de verdade.
 | `20261013000000_senha_provisoria.sql` | Marca de troca obrigatória de senha e `senha_trocada()` (issue 03) | sim, 2026-10-13 |
 | `20261020000000_keepalive.sql` | Tabela mínima que o workflow keepalive consulta (issue 19) | sim, 2026-10-20 |
 | `20261021000000_encerrar_sessoes.sql` | Função `encerrar_sessoes()` só para o serviço: derruba sessões abertas (issue 04) | pendente |
+| `20261021000100_senha_provisoria_em.sql` | `senha_provisoria_em`: token antigo não zera a troca de senha (issue 04) | pendente |
+| `20261021000200_ativo_so_pela_funcao.sql` | Tira do app o update direto de `ativo`: só a Edge Function ativa/desativa (issue 04) | pendente |
 
 Depois de aplicar a migração, publique de novo a função `gerenciar-aluno`
 (ela passou a chamar `encerrar_sessoes`).
@@ -119,9 +121,15 @@ as sessões; "Gerar nova senha" também encerra. Ficou para conferir no Supabase
   Teste: desative um aluno logado e veja se ele cai ao renovar a sessão.
 - O token de acesso (JWT) já emitido vale até expirar (padrão 1 hora), mas o RLS
   já bloqueia o conteúdo na hora porque o perfil fica inativo.
-- Se o encerramento falhar na nova senha, a tela avisa o professor.
+- Se o encerramento falhar (nova senha ou desativar), a tela avisa o professor.
+  Ao desativar, o acesso já está bloqueado; sessões abertas podem durar até 1 hora.
+- Políticas de tabelas futuras DEVEM usar `e_aluno_ativo()` / `e_professor()`; só
+  assim o bloqueio de quem foi desativado vale na hora.
 Para as issues de vídeo:
-- A Edge Function do Bunny confere `e_aluno_ativo()` antes de assinar qualquer URL.
+- A Edge Function do Bunny valida o token com `getUser()` e confere `e_aluno_ativo()`
+  antes de assinar qualquer URL.
+Para as issues 17/18 (LGPD):
+- Falta o caminho de exclusão definitiva do aluno (apagar conta e dados a pedido).
 Para depois:
 - `senha_trocada()` poderia provar que a senha mudou (comparar hash). Hoje o impacto
   é baixo: com troca pendente, `e_aluno_ativo()` é falso e nenhum conteúdo é liberado.

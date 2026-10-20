@@ -15,6 +15,8 @@ export default function AreaProfessor({ cliente }: { cliente: SupabaseClient }) 
   // A senha provisória só existe aqui, na memória, até o professor fechar o aviso.
   const [senha, setSenha] = useState<SenhaVisivel | null>(null)
   const [copiado, setCopiado] = useState(false)
+  // Aviso curto após desativar, quando as sessões abertas não puderam ser encerradas.
+  const [avisoSessoes, setAvisoSessoes] = useState(false)
   // Aluno com desativar/reativar em andamento (trava o botão contra toque duplo).
   const [ocupado, setOcupado] = useState<string | null>(null)
 
@@ -71,10 +73,13 @@ export default function AreaProfessor({ cliente }: { cliente: SupabaseClient }) 
       : `Reativar ${aluno.nome}? O aluno volta a entrar com a mesma senha.`
     if (!window.confirm(mensagem)) return
     setErro('')
+    setAvisoSessoes(false)
     setOcupado(aluno.id)
     const r = await (aluno.ativo ? desativarAluno : ativarAluno)(cliente, aluno.id)
     setOcupado(null)
     if (!r.ok) return setErro(r.erro)
+    // Só a função de desativar devolve este aviso (o acesso já foi bloqueado).
+    if ('aviso' in r.dados && r.dados.aviso === 'sessoes_nao_encerradas') setAvisoSessoes(true)
     await carregar()
   }
 
@@ -111,6 +116,12 @@ export default function AreaProfessor({ cliente }: { cliente: SupabaseClient }) 
           </div>
           {copiado && <p>Copiado!</p>}
         </div>
+      )}
+
+      {avisoSessoes && (
+        <p className="erro" role="status">
+          O acesso foi bloqueado, mas sessões já abertas podem durar até 1 hora.
+        </p>
       )}
 
       <h2>Cadastrar aluno</h2>

@@ -162,7 +162,13 @@ Deno.serve(async (req) => {
       // O gatilho do banco já criou o perfil (aluno, desativado): ativa e exige troca.
       const { error: erroPerfil } = await admin
         .from('perfis')
-        .update({ nome: pedido.nome, ativo: true, precisa_trocar_senha: true })
+        .update({
+          nome: pedido.nome,
+          ativo: true,
+          precisa_trocar_senha: true,
+          // Marca quando a senha provisória nasceu: JWT mais antigo não zera a troca.
+          senha_provisoria_em: new Date().toISOString(),
+        })
         .eq('id', data.user.id)
       if (erroPerfil) {
         // Desfaz a conta para não sobrar aluno sem nome e sem troca obrigatória.
@@ -187,7 +193,10 @@ Deno.serve(async (req) => {
       // Liga a troca obrigatória ANTES de mudar a senha (falha no meio não deixa brecha).
       const { error: erroFlag } = await admin
         .from('perfis')
-        .update({ precisa_trocar_senha: true })
+        .update({
+          precisa_trocar_senha: true,
+          senha_provisoria_em: new Date().toISOString(),
+        })
         .eq('id', pedido.id)
       if (erroFlag) return responder({ erro: 'Não foi possível gerar a senha.' }, 500)
       const { error } = await admin.auth.admin.updateUserById(pedido.id, { password: senha })
@@ -216,7 +225,9 @@ Deno.serve(async (req) => {
       })
       if (erroBan) return responder({ erro: 'Não foi possível desativar o aluno.' }, 500)
       const { error: erroSessoes } = await admin.rpc('encerrar_sessoes', { alvo: pedido.id })
-      if (erroSessoes) return responder({ erro: 'Não foi possível desativar o aluno.' }, 500)
+      // Perfil e ban já valem: o acesso está bloqueado. Só avisa que sessões
+      // abertas podem durar até o token expirar.
+      if (erroSessoes) return responder({ ok: true, aviso: 'sessoes_nao_encerradas' })
       return responder({ ok: true })
     }
 
