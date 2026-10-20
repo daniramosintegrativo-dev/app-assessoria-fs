@@ -20,3 +20,10 @@ export async function chamarGerenciarAluno<T>(
     return { ok: false, erro: ERRO_PADRAO }
   }
 }
+
+// Desativar corta o acesso na hora; reativar devolve o acesso com a mesma senha.
+export const desativarAluno = (cliente: SupabaseClient, id: string) =>
+  chamarGerenciarAluno<{ ok: true }>(cliente, { acao: 'desativar', id })
+
+export const ativarAluno = (cliente: SupabaseClient, id: string) =>
+  chamarGerenciarAluno<{ ok: true }>(cliente, { acao: 'ativar', id })
