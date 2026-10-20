@@ -48,6 +48,10 @@ testes de `supabase/tests/`. Não toca no Supabase de verdade.
 | `20261012000000_perfis.sql` | Perfis professor/aluno com RLS (issue 02) | sim, 2026-10-12 |
 | `20261013000000_senha_provisoria.sql` | Marca de troca obrigatória de senha e `senha_trocada()` (issue 03) | sim, 2026-10-13 |
 | `20261020000000_keepalive.sql` | Tabela mínima que o workflow keepalive consulta (issue 19) | sim, 2026-10-20 |
+| `20261021000000_encerrar_sessoes.sql` | Função `encerrar_sessoes()` só para o serviço: derruba sessões abertas (issue 04) | pendente |
+
+Depois de aplicar a migração, publique de novo a função `gerenciar-aluno`
+(ela passou a chamar `encerrar_sessoes`).
 
 ## Exigir senha de 8+ caracteres (obrigatório)
 O app já exige 8 caracteres na tela, mas a regra de verdade fica no Supabase:
@@ -109,11 +113,13 @@ tabela `keepalive` a cada 3 dias.
   na lista de alunos.
 
 ## Pendências de segurança (revisões das issues 02 e 03)
-Para a issue 04 (ativar/desativar aluno):
-- Ao desativar, bloquear também no Auth (`ban_duration`) e encerrar as sessões abertas.
-- "Gerar nova senha" também deve encerrar as sessões abertas do aluno
-  (função SQL só para `service_role`: `delete from auth.sessions where user_id = ...`).
-  Conferir antes se o Supabase já faz isso sozinho.
+Issue 04 (ativar/desativar): desativar bloqueia no Auth (`ban_duration`) e encerra
+as sessões; "Gerar nova senha" também encerra. Ficou para conferir no Supabase real:
+- Se `encerrar_sessoes` consegue apagar de `auth.sessions` (função dona = `postgres`).
+  Teste: desative um aluno logado e veja se ele cai ao renovar a sessão.
+- O token de acesso (JWT) já emitido vale até expirar (padrão 1 hora), mas o RLS
+  já bloqueia o conteúdo na hora porque o perfil fica inativo.
+- Se o encerramento falhar na nova senha, a tela avisa o professor.
 Para as issues de vídeo:
 - A Edge Function do Bunny confere `e_aluno_ativo()` antes de assinar qualquer URL.
 Para depois:
