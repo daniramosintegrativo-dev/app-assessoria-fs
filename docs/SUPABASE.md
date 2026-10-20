@@ -48,9 +48,9 @@ testes de `supabase/tests/`. Não toca no Supabase de verdade.
 | `20261012000000_perfis.sql` | Perfis professor/aluno com RLS (issue 02) | sim, 2026-10-12 |
 | `20261013000000_senha_provisoria.sql` | Marca de troca obrigatória de senha e `senha_trocada()` (issue 03) | sim, 2026-10-13 |
 | `20261020000000_keepalive.sql` | Tabela mínima que o workflow keepalive consulta (issue 19) | sim, 2026-10-20 |
-| `20261021000000_encerrar_sessoes.sql` | Função `encerrar_sessoes()` só para o serviço: derruba sessões abertas (issue 04) | pendente |
-| `20261021000100_senha_provisoria_em.sql` | `senha_provisoria_em`: token antigo não zera a troca de senha (issue 04) | pendente |
-| `20261021000200_ativo_so_pela_funcao.sql` | Tira do app o update direto de `ativo`: só a Edge Function ativa/desativa (issue 04) | pendente |
+| `20261021000000_encerrar_sessoes.sql` | Função `encerrar_sessoes()` só para o serviço: derruba sessões abertas (issue 04) | sim, 2026-10-20 |
+| `20261021000100_senha_provisoria_em.sql` | `senha_provisoria_em`: token antigo não zera a troca de senha (issue 04) | sim, 2026-10-20 |
+| `20261021000200_ativo_so_pela_funcao.sql` | Tira do app o update direto de `ativo`: só a Edge Function ativa/desativa (issue 04) | sim, 2026-10-20 |
 
 Depois de aplicar a migração, publique de novo a função `gerenciar-aluno`
 (ela passou a chamar `encerrar_sessoes`).
