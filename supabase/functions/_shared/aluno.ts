@@ -47,6 +47,8 @@ const FORMATO_UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{
 export type Pedido =
   | { acao: 'criar'; nome: string; email: string }
   | { acao: 'nova_senha'; id: string }
+  | { acao: 'desativar'; id: string }
+  | { acao: 'ativar'; id: string }
   | { acao: 'listar' }
 
 export type ResultadoPedido = { ok: true; pedido: Pedido } | { ok: false; erro: string }
@@ -65,10 +67,12 @@ export function lerPedido(corpo: unknown): ResultadoPedido {
       return { ok: true, pedido: { acao: 'criar', nome, email } }
     }
     case 'nova_senha':
+    case 'desativar':
+    case 'ativar':
       if (typeof c.id !== 'string' || !FORMATO_UUID.test(c.id)) {
         return { ok: false, erro: 'Aluno inválido.' }
       }
-      return { ok: true, pedido: { acao: 'nova_senha', id: c.id } }
+      return { ok: true, pedido: { acao: c.acao, id: c.id } }
     case 'listar':
       return { ok: true, pedido: { acao: 'listar' } }
     default:

@@ -61,4 +61,57 @@ do $$ begin
     where id = '00000000-0000-0000-0000-0000000000b2'), 'chamada sem uid não pode mudar nada';
 end $$;
 
+-- 6. JWT emitido ANTES da senha provisória não zera a flag (iat 1000 < 2000).
+insert into auth.users (id, email) values
+  ('00000000-0000-0000-0000-0000000000b3', 'alunob3@teste');
+update public.perfis
+  set ativo = true, precisa_trocar_senha = true, senha_provisoria_em = to_timestamp(2000.5)
+  where id = '00000000-0000-0000-0000-0000000000b3';
+set role authenticated;
+set request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000000b3","iat":1000}';
+select public.senha_trocada();
+reset role;
+do $$ begin
+  assert (select precisa_trocar_senha from public.perfis
+    where id = '00000000-0000-0000-0000-0000000000b3'), 'JWT antigo não pode zerar a flag';
+end $$;
+
+-- 7. JWT emitido no mesmo segundo da senha provisória zera.
+set role authenticated;
+set request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000000b3","iat":2000}';
+select public.senha_trocada();
+reset role;
+do $$ begin
+  assert not (select precisa_trocar_senha from public.perfis
+    where id = '00000000-0000-0000-0000-0000000000b3'), 'JWT do mesmo segundo deveria zerar';
+end $$;
+
+-- 8. JWT posterior também zera; e senha_provisoria_em nulo funciona como antes.
+update public.perfis set precisa_trocar_senha = true, senha_provisoria_em = to_timestamp(2000)
+  where id = '00000000-0000-0000-0000-0000000000b3';
+set role authenticated;
+set request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000000b3","iat":3000}';
+select public.senha_trocada();
+reset role;
+do $$ begin
+  assert not (select precisa_trocar_senha from public.perfis
+    where id = '00000000-0000-0000-0000-0000000000b3'), 'JWT posterior deveria zerar';
+end $$;
+update public.perfis set precisa_trocar_senha = true, senha_provisoria_em = null
+  where id = '00000000-0000-0000-0000-0000000000b3';
+set role authenticated;
+set request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000000b3","iat":1}';
+select public.senha_trocada();
+reset role;
+do $$ begin
+  assert not (select precisa_trocar_senha from public.perfis
+    where id = '00000000-0000-0000-0000-0000000000b3'), 'sem senha_provisoria_em deveria zerar';
+end $$;
+
+-- 9. O app não grava senha_provisoria_em.
+do $$ begin
+  assert not has_column_privilege('authenticated', 'public.perfis', 'senha_provisoria_em', 'update'),
+    'authenticated não deveria atualizar senha_provisoria_em';
+end $$;
+
 select 'OK: testes de senha provisória passaram' as resultado;

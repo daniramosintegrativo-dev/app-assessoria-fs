@@ -98,4 +98,95 @@ describe('AreaProfessor', () => {
       body: { acao: 'nova_senha', id: 'id-ana' },
     })
   })
+
+  it('desativa o aluno e atualiza a lista', async () => {
+    const { cliente, falso } = criarClienteFalso()
+    let ativo = true
+    falso.functions.invoke.mockImplementation(async (_n: string, { body }: { body: { acao: string } }) => {
+      if (body.acao === 'desativar') ativo = false
+      if (body.acao === 'listar') return { data: { alunos: [{ ...ana, ativo }] }, error: null }
+      return { data: { ok: true }, error: null }
+    })
+    const confirmar = vi.spyOn(window, 'confirm').mockReturnValue(true)
+    render(<AreaProfessor cliente={cliente} />)
+    const item = await screen.findByRole('listitem')
+    expect(item).toHaveTextContent('Ativo')
+    await userEvent.click(within(item).getByRole('button', { name: 'Desativar' }))
+    expect(confirmar).toHaveBeenCalledWith(expect.stringContaining('perde o acesso na hora'))
+    expect(falso.functions.invoke).toHaveBeenCalledWith('gerenciar-aluno', {
+      body: { acao: 'desativar', id: 'id-ana' },
+    })
+    expect(await within(await screen.findByRole('listitem')).findByText('Desativado')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Reativar' })).toBeInTheDocument()
+  })
+
+  it('reativa o aluno e atualiza a lista', async () => {
+    const { cliente, falso } = criarClienteFalso()
+    let ativo = false
+    falso.functions.invoke.mockImplementation(async (_n: string, { body }: { body: { acao: string } }) => {
+      if (body.acao === 'ativar') ativo = true
+      if (body.acao === 'listar') return { data: { alunos: [{ ...ana, ativo }] }, error: null }
+      return { data: { ok: true }, error: null }
+    })
+    const confirmar = vi.spyOn(window, 'confirm').mockReturnValue(true)
+    render(<AreaProfessor cliente={cliente} />)
+    const item = await screen.findByRole('listitem')
+    expect(item).toHaveTextContent('Desativado')
+    await userEvent.click(within(item).getByRole('button', { name: 'Reativar' }))
+    expect(confirmar).toHaveBeenCalledWith(expect.stringContaining('mesma senha'))
+    expect(falso.functions.invoke).toHaveBeenCalledWith('gerenciar-aluno', {
+      body: { acao: 'ativar', id: 'id-ana' },
+    })
+    expect(await screen.findByText('Ativo')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Desativar' })).toBeInTheDocument()
+  })
+
+  it('não desativa se o professor cancelar', async () => {
+    const { cliente, falso } = criarClienteFalso()
+    responder(falso)
+    vi.spyOn(window, 'confirm').mockReturnValue(false)
+    render(<AreaProfessor cliente={cliente} />)
+    const item = await screen.findByRole('listitem')
+    await userEvent.click(within(item).getByRole('button', { name: 'Desativar' }))
+    expect(falso.functions.invoke).toHaveBeenCalledTimes(1) // só o "listar"
+  })
+
+  it('mostra o erro quando não consegue desativar', async () => {
+    const { cliente, falso } = criarClienteFalso()
+    responder(falso, {
+      desativar: { data: null, error: { context: { json: async () => ({ erro: 'Não foi possível desativar o aluno.' }) } } },
+    })
+    vi.spyOn(window, 'confirm').mockReturnValue(true)
+    render(<AreaProfessor cliente={cliente} />)
+    const item = await screen.findByRole('listitem')
+    await userEvent.click(within(item).getByRole('button', { name: 'Desativar' }))
+    expect(await screen.findByRole('alert')).toHaveTextContent('Não foi possível desativar o aluno.')
+    expect(item).toHaveTextContent('Ativo')
+  })
+
+  it('avisa quando a nova senha não derrubou as sessões abertas', async () => {
+    const { cliente, falso } = criarClienteFalso()
+    responder(falso, {
+      nova_senha: { data: { senha_provisoria: 'Nova23456xy', aviso: 'sessoes_nao_encerradas' }, error: null },
+    })
+    vi.spyOn(window, 'confirm').mockReturnValue(true)
+    render(<AreaProfessor cliente={cliente} />)
+    const item = await screen.findByRole('listitem')
+    await userEvent.click(within(item).getByRole('button', { name: /nova senha/i }))
+    const caixa = await screen.findByRole('status')
+    expect(caixa).toHaveTextContent('Nova23456xy')
+    expect(caixa).toHaveTextContent('sessões abertas')
+  })
+
+  it('avisa quando desativou mas as sessões abertas não foram encerradas', async () => {
+    const { cliente, falso } = criarClienteFalso()
+    responder(falso, { desativar: { data: { ok: true, aviso: 'sessoes_nao_encerradas' }, error: null } })
+    vi.spyOn(window, 'confirm').mockReturnValue(true)
+    render(<AreaProfessor cliente={cliente} />)
+    const item = await screen.findByRole('listitem')
+    await userEvent.click(within(item).getByRole('button', { name: 'Desativar' }))
+    const aviso = await screen.findByRole('status')
+    expect(aviso).toHaveTextContent('acesso foi bloqueado')
+    expect(aviso).toHaveTextContent('até 1 hora')
+  })
 })

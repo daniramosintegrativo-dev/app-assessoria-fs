@@ -1,9 +1,9 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { useCallback, useEffect, useState, type FormEvent } from 'react'
-import { chamarGerenciarAluno } from '../lib/alunos'
+import { ativarAluno, chamarGerenciarAluno, desativarAluno } from '../lib/alunos'
 import type { Aluno } from '../lib/tipos'
 
-type SenhaVisivel = { nome: string; senha: string }
+type SenhaVisivel = { nome: string; senha: string; aviso?: boolean }
 
 export default function AreaProfessor({ cliente }: { cliente: SupabaseClient }) {
   const [nome, setNome] = useState('')
@@ -15,6 +15,10 @@ export default function AreaProfessor({ cliente }: { cliente: SupabaseClient }) 
   // A senha provisória só existe aqui, na memória, até o professor fechar o aviso.
   const [senha, setSenha] = useState<SenhaVisivel | null>(null)
   const [copiado, setCopiado] = useState(false)
+  // Aviso curto após desativar, quando as sessões abertas não puderam ser encerradas.
+  const [avisoSessoes, setAvisoSessoes] = useState(false)
+  // Aluno com desativar/reativar em andamento (trava o botão contra toque duplo).
+  const [ocupado, setOcupado] = useState<string | null>(null)
 
   const carregar = useCallback(
     () =>
@@ -30,8 +34,8 @@ export default function AreaProfessor({ cliente }: { cliente: SupabaseClient }) 
     void carregar()
   }, [carregar])
 
-  function mostrarSenha(nomeAluno: string, senhaGerada: string) {
-    setSenha({ nome: nomeAluno, senha: senhaGerada })
+  function mostrarSenha(nomeAluno: string, senhaGerada: string, aviso = false) {
+    setSenha({ nome: nomeAluno, senha: senhaGerada, aviso })
     setCopiado(false)
   }
 
@@ -55,12 +59,28 @@ export default function AreaProfessor({ cliente }: { cliente: SupabaseClient }) 
   async function novaSenha(aluno: Aluno) {
     if (!window.confirm(`Gerar nova senha para ${aluno.nome}? A senha atual deixa de valer.`)) return
     setErro('')
-    const r = await chamarGerenciarAluno<{ senha_provisoria: string }>(cliente, {
+    const r = await chamarGerenciarAluno<{ senha_provisoria: string; aviso?: string }>(cliente, {
       acao: 'nova_senha',
       id: aluno.id,
     })
     if (!r.ok) return setErro(r.erro)
-    mostrarSenha(aluno.nome, r.dados.senha_provisoria)
+    mostrarSenha(aluno.nome, r.dados.senha_provisoria, r.dados.aviso === 'sessoes_nao_encerradas')
+  }
+
+  async function alternarAtivo(aluno: Aluno) {
+    const mensagem = aluno.ativo
+      ? `Desativar ${aluno.nome}? O aluno perde o acesso na hora.`
+      : `Reativar ${aluno.nome}? O aluno volta a entrar com a mesma senha.`
+    if (!window.confirm(mensagem)) return
+    setErro('')
+    setAvisoSessoes(false)
+    setOcupado(aluno.id)
+    const r = await (aluno.ativo ? desativarAluno : ativarAluno)(cliente, aluno.id)
+    setOcupado(null)
+    if (!r.ok) return setErro(r.erro)
+    // Só a função de desativar devolve este aviso (o acesso já foi bloqueado).
+    if ('aviso' in r.dados && r.dados.aviso === 'sessoes_nao_encerradas') setAvisoSessoes(true)
+    await carregar()
   }
 
   async function copiar() {
@@ -84,12 +104,24 @@ export default function AreaProfessor({ cliente }: { cliente: SupabaseClient }) 
           <p className="texto-secundario">
             Ela aparece só desta vez. Envie pelo WhatsApp: no primeiro acesso o aluno cria a própria senha.
           </p>
+          {senha.aviso && (
+            <p className="erro">
+              Atenção: não foi possível encerrar as sessões abertas do aluno. Ele pode continuar
+              logado até a sessão expirar.
+            </p>
+          )}
           <div className="linha">
             <button className="botao" type="button" onClick={copiar}>Copiar</button>
             <button className="botao botao--leve" type="button" onClick={() => setSenha(null)}>Já enviei</button>
           </div>
           {copiado && <p>Copiado!</p>}
         </div>
+      )}
+
+      {avisoSessoes && (
+        <p className="erro" role="status">
+          O acesso foi bloqueado, mas sessões já abertas podem durar até 1 hora.
+        </p>
       )}
 
       <h2>Cadastrar aluno</h2>
@@ -120,9 +152,19 @@ export default function AreaProfessor({ cliente }: { cliente: SupabaseClient }) 
                 <div className="texto-secundario">{a.email}</div>
                 <div className="texto-secundario">{a.ativo ? 'Ativo' : 'Desativado'}</div>
               </div>
-              <button className="botao botao--leve" type="button" onClick={() => novaSenha(a)}>
-                Gerar nova senha
-              </button>
+              <div className="linha">
+                <button className="botao botao--leve" type="button" onClick={() => novaSenha(a)}>
+                  Gerar nova senha
+                </button>
+                <button
+                  className="botao botao--leve"
+                  type="button"
+                  disabled={ocupado === a.id}
+                  onClick={() => alternarAtivo(a)}
+                >
+                  {a.ativo ? 'Desativar' : 'Reativar'}
+                </button>
+              </div>
             </li>
           ))}
         </ul>

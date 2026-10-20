@@ -78,6 +78,13 @@ describe('lerPedido', () => {
     expect(lerPedido({ acao: 'nova_senha', id: 'x' }).ok).toBe(false)
     expect(lerPedido({ acao: 'nova_senha' }).ok).toBe(false)
   })
+  it('aceita desativar e ativar só com id no formato uuid', () => {
+    for (const acao of ['desativar', 'ativar'] as const) {
+      expect(lerPedido({ acao, id })).toEqual({ ok: true, pedido: { acao, id } })
+      expect(lerPedido({ acao, id: 'x' }).ok).toBe(false)
+      expect(lerPedido({ acao }).ok).toBe(false)
+    }
+  })
   it('aceita listar', () => {
     expect(lerPedido({ acao: 'listar' })).toEqual({ ok: true, pedido: { acao: 'listar' } })
   })

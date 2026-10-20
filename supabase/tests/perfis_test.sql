@@ -82,9 +82,11 @@ do $$ declare n int; begin
     raise exception 'aluno não deveria executar a função do gatilho';
   exception when insufficient_privilege or feature_not_supported then null;
   end;
-  update public.perfis set ativo = false where id = auth.uid();
-  get diagnostics n = row_count;
-  assert n = 0, 'aluno não deveria poder mudar o próprio status';
+  begin
+    update public.perfis set ativo = false where id = auth.uid();
+    raise exception 'aluno não deveria poder mudar o próprio status';
+  exception when insufficient_privilege then null;
+  end;
 end $$;
 
 -- 6. Aluno não cria nem apaga perfis.
@@ -101,13 +103,19 @@ do $$ begin
   end;
 end $$;
 
--- 7. Professor vê todos e pode desativar/renomear aluno, mas não mudar papel.
+-- 7. Professor vê todos e pode renomear aluno, mas não mudar papel nem ativo
+-- (ativar/desativar é só pela Edge Function: também aplica ban e encerra sessões).
 set request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000a"}';
 do $$ declare n int; begin
   assert (select count(*) from public.perfis) = 3, 'professor deveria ver todos os perfis';
-  update public.perfis set ativo = false, nome = 'Aluno Dois' where id = '00000000-0000-0000-0000-000000000002';
+  update public.perfis set nome = 'Aluno Dois' where id = '00000000-0000-0000-0000-000000000002';
   get diagnostics n = row_count;
-  assert n = 1, 'professor deveria poder desativar aluno';
+  assert n = 1, 'professor deveria poder renomear aluno';
+  begin
+    update public.perfis set ativo = false where id = '00000000-0000-0000-0000-000000000002';
+    raise exception 'professor não deveria desativar aluno por update direto';
+  exception when insufficient_privilege then null;
+  end;
   begin
     update public.perfis set papel = 'professor' where id = '00000000-0000-0000-0000-000000000001';
     raise exception 'professor não deveria mudar papel pela API';
@@ -123,7 +131,10 @@ do $$ declare n int; begin
   assert n = 1, 'professor deveria poder mudar o próprio nome';
 end $$;
 
--- 8. Aluno desativado não vê nem o próprio perfil.
+-- 8. Aluno desativado (pelo serviço, como a Edge Function faz) não vê nem o próprio perfil.
+reset role;
+update public.perfis set ativo = false where id = '00000000-0000-0000-0000-000000000002';
+set role authenticated;
 set request.jwt.claims = '{"sub":"00000000-0000-0000-0000-000000000002"}';
 do $$ begin
   assert (select count(*) from public.perfis) = 0, 'aluno desativado não deveria ver nada';
