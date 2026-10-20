@@ -52,7 +52,7 @@ testes de `supabase/tests/`. Não toca no Supabase de verdade.
 ## Exigir senha de 8+ caracteres (obrigatório)
 O app já exige 8 caracteres na tela, mas a regra de verdade fica no Supabase:
 **Authentication** → **Sign In / Providers** → **Email** → **Minimum password
-length** = `8` (o padrão é 6). Salve.
+length** = `8` (o padrão é 6). Salve. Feito em 2026-10-20.
 
 ## Edge Functions: publicação automática (recomendado)
 O workflow `.github/workflows/deploy-functions.yml` publica as funções sempre
