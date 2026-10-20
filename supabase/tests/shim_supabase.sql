@@ -10,6 +10,11 @@ create table auth.users (
   email text,
   raw_user_meta_data jsonb default '{}'::jsonb
 );
+-- Sessões abertas (no Supabase real há também refresh_tokens, que cai em cascata).
+create table auth.sessions (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users on delete cascade
+);
 create function auth.uid() returns uuid language sql stable as $$
   select nullif(current_setting('request.jwt.claims', true)::jsonb ->> 'sub', '')::uuid
 $$;
