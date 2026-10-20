@@ -47,6 +47,7 @@ testes de `supabase/tests/`. Não toca no Supabase de verdade.
 |---|---|---|
 | `20261012000000_perfis.sql` | Perfis professor/aluno com RLS (issue 02) | sim, 2026-10-12 |
 | `20261013000000_senha_provisoria.sql` | Marca de troca obrigatória de senha e `senha_trocada()` (issue 03) | sim, 2026-10-13 |
+| `20261020000000_keepalive.sql` | Tabela mínima que o workflow keepalive consulta (issue 19) | pendente |
 
 ## Exigir senha de 8+ caracteres (obrigatório)
 O app já exige 8 caracteres na tela, mas a regra de verdade fica no Supabase:
@@ -82,17 +83,20 @@ ativo consegue chamar). Passo a passo:
 Sempre que mudar `supabase/functions/`, rode `npm run build:function` e
 publique de novo.
 
-## Variáveis na Cloudflare
-Em **Cloudflare Pages** → projeto → **Settings** → **Variables and Secrets**
-(vale para Production e Preview), crie:
-- `VITE_SUPABASE_URL`: no Supabase, **Project Settings** → **Data API** →
-  "Project URL".
-- `VITE_SUPABASE_ANON_KEY`: **Project Settings** → **API Keys** → chave
-  **publishable** (começa com `sb_publishable_`) ou, no painel antigo, a
-  `anon` public.
-NUNCA use a chave `secret` / `service_role` aqui: ela daria acesso total ao
-banco. Depois de salvar, faça um novo deploy para valer. Para rodar no seu
-computador, copie `.env.example` para `.env.local` e preencha as duas.
+## Endereço e chave pública do app (2026-10-20)
+O endereço do projeto e a chave **publishable** (`sb_publishable_…`) ficam no
+código, em `src/lib/supabase.ts`. São públicos por natureza (vão no navegador
+de qualquer aluno); quem protege os dados é o RLS. Assim a Cloudflare não
+precisa de variáveis do Supabase (só `NODE_VERSION = 22`).
+NUNCA coloque a chave `secret` / `service_role` no código nem na Cloudflare.
+Se a chave publishable for trocada no painel, atualize `src/lib/supabase.ts`
+e `.github/workflows/supabase-keepalive.yml`.
+
+## Projeto pausado
+O plano gratuito pausa o projeto após ~7 dias sem uso (aconteceu em
+2026-10-20). Para voltar: página inicial do projeto → **Resume project** (não
+"Upgrade to Pro"). O workflow `supabase-keepalive` evita isso consultando a
+tabela `keepalive` a cada 3 dias.
 
 ## Como o acesso funciona (D13)
 - Professor cadastra o aluno no app (nome + e-mail) e recebe uma senha

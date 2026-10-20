@@ -31,7 +31,7 @@ beforeEach(() => {
 describe('App', () => {
   it('avisa com clareza quando falta a configuração do Supabase', () => {
     render(<App />)
-    expect(screen.getByRole('alert')).toHaveTextContent(/VITE_SUPABASE_URL/)
+    expect(screen.getByRole('alert')).toHaveTextContent(/sem configuração do Supabase/)
   })
 
   it('sem sessão mostra o login', async () => {

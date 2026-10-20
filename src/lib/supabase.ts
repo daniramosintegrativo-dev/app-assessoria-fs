@@ -1,10 +1,10 @@
-import { createClient } from '@supabase/supabase-js'
+import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 
-// Estas duas variáveis são PÚBLICAS por natureza (vão no navegador). A segurança
-// vem do RLS no banco. VITE_SUPABASE_ANON_KEY pode ser a chave "publishable"
-// do painel novo do Supabase. NUNCA ponha aqui a chave "secret"/service_role.
-const url = import.meta.env.VITE_SUPABASE_URL
-const chave = import.meta.env.VITE_SUPABASE_ANON_KEY
+// Endereço e chave "publishable" são PÚBLICOS por natureza (vão no navegador de
+// qualquer aluno). A segurança vem do RLS no banco. Ficam no código para não
+// depender de variáveis na Cloudflare. NUNCA ponha aqui a chave "secret".
+export const SUPABASE_URL = 'https://mayocglxeoyxrmetmdbl.supabase.co'
+export const SUPABASE_CHAVE_PUBLICA = 'sb_publishable_RZX_85w0qXXyAM0qX6dHyA_RxpycX9U'
 
-// Sem configuração o cliente é nulo e o app mostra um aviso em vez de quebrar.
-export const supabase = url && chave ? createClient(url, chave) : null
+// Tipo anulável: os testes trocam este módulo por um cliente falso ou nulo.
+export const supabase: SupabaseClient | null = createClient(SUPABASE_URL, SUPABASE_CHAVE_PUBLICA)

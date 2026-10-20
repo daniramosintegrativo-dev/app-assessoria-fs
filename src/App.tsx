@@ -91,7 +91,7 @@ function App() {
   if (!supabase) {
     return (
       <Aviso>
-        App sem configuração: defina VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY (veja docs/SUPABASE.md).
+        App sem configuração do Supabase (veja src/lib/supabase.ts e docs/SUPABASE.md).
       </Aviso>
     )
   }
