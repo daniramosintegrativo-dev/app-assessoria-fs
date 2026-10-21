@@ -212,3 +212,37 @@
   outline: 2px solid var(--cor-laranja);
   outline-offset: 2px;
 }
+
+/* Ficha do aluno: abas grandes e texto legível a um braço de distância */
+.abas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 16px 0;
+}
+
+.botao--aba {
+  flex: 1 1 0;
+  min-width: 96px;
+  min-height: 48px;
+  color: var(--cor-marinho);
+  background: var(--cor-superficie);
+  border-color: var(--cor-indigo);
+}
+
+.botao--aba[aria-selected='true'] {
+  color: #ffffff;
+  background: var(--cor-marinho);
+  border-color: var(--cor-laranja);
+}
+
+.ficha-texto {
+  overflow-wrap: anywhere;
+  font-size: 1.25rem;
+  line-height: 1.6;
+  color: var(--cor-texto);
+  background: var(--cor-superficie);
+  border: var(--borda-fina) solid var(--cor-indigo);
+  border-radius: var(--raio);
+  padding: 16px;
+}
