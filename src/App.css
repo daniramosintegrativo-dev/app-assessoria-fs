@@ -190,3 +190,25 @@
   border-radius: var(--raio);
   overflow-wrap: anywhere;
 }
+
+/* Ficha de treinos: bloco de notas, letra legível */
+.treino {
+  margin: 16px 0;
+}
+
+.treino__texto {
+  min-height: 12rem;
+  padding: 12px;
+  font: inherit;
+  line-height: 1.5;
+  color: var(--cor-texto);
+  background: var(--cor-superficie);
+  border: var(--borda-fina) solid var(--cor-indigo);
+  border-radius: var(--raio);
+  resize: vertical;
+}
+
+.treino__texto:focus-visible {
+  outline: 2px solid var(--cor-laranja);
+  outline-offset: 2px;
+}

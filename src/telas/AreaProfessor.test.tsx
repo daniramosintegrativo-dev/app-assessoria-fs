@@ -189,4 +189,16 @@ describe('AreaProfessor', () => {
     expect(aviso).toHaveTextContent('acesso foi bloqueado')
     expect(aviso).toHaveTextContent('até 1 hora')
   })
+
+  it('abre a ficha do aluno e volta para a lista', async () => {
+    const { cliente, falso } = criarClienteFalso({ treinos: [{ letra: 'A', texto: 'agachamento' }] })
+    responder(falso)
+    render(<AreaProfessor cliente={cliente} />)
+    const item = await screen.findByRole('listitem')
+    await userEvent.click(within(item).getByRole('button', { name: 'Ficha' }))
+    expect(await screen.findByRole('heading', { name: 'Ficha de Ana Souza' })).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Cadastrar aluno' })).not.toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'Voltar' }))
+    expect(await screen.findByRole('heading', { name: 'Alunos' })).toBeInTheDocument()
+  })
 })
