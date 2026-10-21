@@ -8,7 +8,14 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
-      registerType: 'autoUpdate',
+      // 'prompt': o registro e o recarregamento são feitos em src/lib/atualizacao.ts,
+      // que evita recarregar enquanto alguém digita.
+      registerType: 'prompt',
+      workbox: {
+        clientsClaim: true,
+        skipWaiting: true,
+        cleanupOutdatedCaches: true,
+      },
       includeAssets: ['favicon.png', 'apple-touch-icon.png', 'logo.png'],
       manifest: {
         name: 'Físico Sagrado',

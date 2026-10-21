@@ -11,6 +11,8 @@ type Opcoes = {
   falhaTreinos?: boolean
   // Gravar/apagar não afeta linha nenhuma, sem erro (como o RLS faz ao bloquear).
   semEfeitoTreinos?: boolean
+  // Ler os treinos devolve erro.
+  falhaConsulta?: boolean
 }
 
 // Cliente do Supabase de mentira, só com o que o app usa.
@@ -21,6 +23,7 @@ export function criarClienteFalso({
   treinos = [],
   falhaTreinos = false,
   semEfeitoTreinos = false,
+  falhaConsulta = false,
 }: Opcoes = {}) {
   const sessaoAtual = sessao ? { user: { id: 'u1', email: 'a@x.com' } } : null
   const falso = {
@@ -33,7 +36,7 @@ export function criarClienteFalso({
     },
     from: vi.fn((tabela: string) =>
       tabela === 'treinos'
-        ? tabelaTreinosFalsa(treinos, falhaTreinos, semEfeitoTreinos)
+        ? tabelaTreinosFalsa(treinos, falhaTreinos, semEfeitoTreinos, falhaConsulta)
         : {
             select: () => ({
               eq: () => ({
@@ -53,11 +56,12 @@ export function criarClienteFalso({
 
 // Tabela treinos de mentira, na memória: aceita select/insert/update/delete
 // encadeados com .eq() e .order(), como o supabase-js.
-function tabelaTreinosFalsa(guardados: Treino[], falha: boolean, semEfeito: boolean) {
+function tabelaTreinosFalsa(guardados: Treino[], falha: boolean, semEfeito: boolean, falhaLeitura: boolean) {
   const consulta = (operacao: 'select' | 'insert' | 'update' | 'delete', dados?: Record<string, unknown>) => {
     const filtros: Record<string, unknown> = {}
     const executar = () => {
       const erro = { message: 'falhou' }
+      if (operacao === 'select' && falhaLeitura) return { data: null, error: erro }
       if (operacao === 'select') return { data: [...guardados].sort((a, b) => a.letra.localeCompare(b.letra)), error: null }
       if (falha) return { data: null, error: erro }
       if (operacao === 'insert') guardados.push({ letra: dados!.letra as Treino['letra'], texto: '' })

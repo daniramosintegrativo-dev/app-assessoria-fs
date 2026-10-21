@@ -5,6 +5,7 @@ import type { Perfil } from './lib/tipos'
 import { supabase } from './lib/supabase'
 import AreaProfessor from './telas/AreaProfessor'
 import Login from './telas/Login'
+import MinhaFicha from './telas/MinhaFicha'
 import TrocaSenha from './telas/TrocaSenha'
 
 // Estado do perfil: carregando, erro de rede, ou o resultado (null = sem acesso).
@@ -70,7 +71,7 @@ function Logado({ cliente, sessao }: { cliente: SupabaseClient; sessao: Session 
     tela = (
       <section className="painel">
         <h1>Olá, {perfil.nome}</h1>
-        <p className="texto-secundario">Em breve: seus treinos, vídeos e feedback em um só lugar.</p>
+        <MinhaFicha cliente={cliente} alunoId={idUsuario} />
       </section>
     )
   }

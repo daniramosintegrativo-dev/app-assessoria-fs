@@ -39,9 +39,11 @@ describe('App', () => {
     expect(await screen.findByRole('button', { name: 'Entrar' })).toBeInTheDocument()
   })
 
-  it('aluno ativo vê "Olá" e não vê a área do professor', async () => {
-    abrir({ sessao: true, perfil: aluno })
+  it('aluno ativo vê "Olá", a própria ficha e não vê a área do professor', async () => {
+    abrir({ sessao: true, perfil: aluno, treinos: [{ letra: 'A', texto: 'agachamento' }] })
     expect(await screen.findByRole('heading', { name: 'Olá, Carla' })).toBeInTheDocument()
+    expect(await screen.findByText('agachamento')).toBeInTheDocument()
+    expect(screen.getByRole('tab', { name: 'Treino A' })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Cadastrar aluno' })).not.toBeInTheDocument()
   })
 
