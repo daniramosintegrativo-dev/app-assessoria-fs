@@ -9,6 +9,7 @@ vi.mock('virtual:pwa-register', () => ({
 }))
 
 import { iniciarAtualizacao } from './atualizacao'
+import { marcar } from './pendencias'
 
 const MEIA_HORA = 30 * 60 * 1000
 
@@ -71,6 +72,16 @@ describe('iniciarAtualizacao', () => {
     caixa.focus()
     const { recarregar, aoPendente } = iniciar()
     sw.dispatchEvent(new Event('controllerchange'))
+    expect(recarregar).not.toHaveBeenCalled()
+    expect(aoPendente).toHaveBeenCalledTimes(1)
+  })
+
+  it('com alteração não salva, avisa em vez de recarregar, mesmo sem foco', () => {
+    const sw = falsoServiceWorker(true)
+    marcar('treino:x', true)
+    const { recarregar, aoPendente } = iniciar()
+    sw.dispatchEvent(new Event('controllerchange'))
+    marcar('treino:x', false)
     expect(recarregar).not.toHaveBeenCalled()
     expect(aoPendente).toHaveBeenCalledTimes(1)
   })

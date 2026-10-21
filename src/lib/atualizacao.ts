@@ -1,5 +1,7 @@
 import { registerSW } from 'virtual:pwa-register'
 
+import { haPendencias } from './pendencias'
+
 const MEIA_HORA = 30 * 60 * 1000
 
 // Avisado quando há versão nova mas recarregar agora poderia perder texto digitado.
@@ -13,7 +15,7 @@ function digitando(): boolean {
 
 // Mantém o app em dia no celular:
 // - procura versão nova ao abrir, ao voltar para o app e a cada 30 min;
-// - quando a versão nova assume, recarrega UMA vez (se ninguém estiver digitando);
+// - quando a versão nova assume, recarrega UMA vez (se ninguém estiver digitando nem houver texto não salvo);
 // - se estiver digitando, chama aoPendente (faixa "Atualizar") em vez de recarregar.
 // O service worker novo ativa sozinho (skipWaiting + clientsClaim, no vite.config).
 export function iniciarAtualizacao({
@@ -44,7 +46,7 @@ export function iniciarAtualizacao({
   sw.addEventListener('controllerchange', () => {
     if (!haviaVersao || tratou) return
     tratou = true
-    if (digitando()) aoPendente()
+    if (digitando() || haPendencias()) aoPendente()
     else recarregar()
   })
 }

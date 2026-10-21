@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { Treino } from '../lib/tipos'
 import { criarClienteFalso } from '../test/clienteFalso'
+import { haPendencias } from '../lib/pendencias'
 import FichaAluno from './FichaAluno'
 
 const ana = { id: 'id-ana', nome: 'Ana Souza', email: 'ana@x.com', ativo: true }
@@ -10,8 +11,8 @@ const ana = { id: 'id-ana', nome: 'Ana Souza', email: 'ana@x.com', ativo: true }
 function abrir(treinos: Treino[] = [], falhaTreinos = false, semEfeitoTreinos = false) {
   const voltar = vi.fn()
   const { cliente, falso } = criarClienteFalso({ treinos, falhaTreinos, semEfeitoTreinos })
-  render(<FichaAluno cliente={cliente} aluno={ana} aoVoltar={voltar} />)
-  return { falso, voltar }
+  const { unmount } = render(<FichaAluno cliente={cliente} aluno={ana} aoVoltar={voltar} />)
+  return { falso, voltar, desmontar: unmount }
 }
 
 afterEach(() => vi.restoreAllMocks())
@@ -98,5 +99,44 @@ describe('FichaAluno', () => {
     await userEvent.click(await screen.findByRole('button', { name: 'Remover treino A' }))
     expect(await screen.findByRole('alert')).toHaveTextContent('Não foi possível remover')
     expect(screen.getByLabelText('Treino A')).toBeInTheDocument()
+  })
+
+  it('texto alterado e não salvo conta como pendência; salvar limpa', async () => {
+    abrir([{ letra: 'A', texto: 'x' }])
+    const caixa = await screen.findByLabelText('Treino A')
+    expect(haPendencias()).toBe(false)
+    await userEvent.type(caixa, 'y')
+    expect(haPendencias()).toBe(true)
+    await userEvent.click(screen.getByRole('button', { name: 'Salvar treino A' }))
+    expect(await screen.findByText('Salvo')).toBeInTheDocument()
+    expect(haPendencias()).toBe(false)
+  })
+
+  it('voltar ao texto salvo desfaz a pendência; falha ao salvar a mantém', async () => {
+    abrir([{ letra: 'A', texto: 'x' }], true)
+    const caixa = await screen.findByLabelText('Treino A')
+    await userEvent.type(caixa, 'y')
+    await userEvent.click(screen.getByRole('button', { name: 'Salvar treino A' }))
+    expect(await screen.findByRole('alert')).toBeInTheDocument()
+    expect(haPendencias()).toBe(true)
+    await userEvent.type(caixa, '{Backspace}')
+    expect(haPendencias()).toBe(false)
+  })
+
+  it('remover o treino limpa a pendência', async () => {
+    vi.spyOn(window, 'confirm').mockReturnValue(true)
+    abrir([{ letra: 'A', texto: 'x' }])
+    await userEvent.type(await screen.findByLabelText('Treino A'), 'y')
+    await userEvent.click(screen.getByRole('button', { name: 'Remover treino A' }))
+    await screen.findByText('Este aluno ainda não tem treinos.')
+    expect(haPendencias()).toBe(false)
+  })
+
+  it('sair da tela limpa a pendência', async () => {
+    const { desmontar } = abrir([{ letra: 'A', texto: 'x' }])
+    await userEvent.type(await screen.findByLabelText('Treino A'), 'y')
+    expect(haPendencias()).toBe(true)
+    desmontar()
+    expect(haPendencias()).toBe(false)
   })
 })

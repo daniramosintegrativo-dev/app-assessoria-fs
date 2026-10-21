@@ -1,5 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { useEffect, useState } from 'react'
+import { marcar } from '../lib/pendencias'
 import { LETRAS, criarTreino, listarTreinos, removerTreino, salvarTreino } from '../lib/treinos'
 import type { Aluno, Treino } from '../lib/tipos'
 
@@ -14,6 +15,8 @@ export default function FichaAluno({
   aoVoltar: () => void
 }) {
   const [treinos, setTreinos] = useState<Treino[]>([])
+  // Último texto gravado de cada treino: base para saber o que está sem salvar.
+  const [salvos, setSalvos] = useState<Partial<Record<Treino['letra'], string>>>({})
   const [carregando, setCarregando] = useState(true)
   const [erro, setErro] = useState('')
   // Letra recém-salva (mostra "Salvo" até a próxima edição).
@@ -23,11 +26,28 @@ export default function FichaAluno({
 
   useEffect(() => {
     void listarTreinos(cliente, aluno.id).then((r) => {
-      if (r.ok) setTreinos(r.dados)
+      if (r.ok) {
+        setTreinos(r.dados)
+        setSalvos(Object.fromEntries(r.dados.map((t) => [t.letra, t.texto])))
+      }
       else setErro(r.erro)
       setCarregando(false)
     })
   }, [cliente, aluno.id])
+
+  // Texto diferente do gravado = pendência (bloqueia recarga automática do app).
+  useEffect(() => {
+    for (const l of LETRAS) {
+      const t = treinos.find((x) => x.letra === l)
+      marcar(`treino:${aluno.id}:${l}`, !!t && t.texto !== (salvos[l] ?? ''))
+    }
+  }, [treinos, salvos, aluno.id])
+
+  // Ao sair da tela, nada fica pendente.
+  useEffect(
+    () => () => LETRAS.forEach((l) => marcar(`treino:${aluno.id}:${l}`, false)),
+    [aluno.id],
+  )
 
   // Próxima letra livre; vazia quando já há A, B, C e D.
   const proxima = LETRAS.find((l) => !treinos.some((t) => t.letra === l))
@@ -47,14 +67,20 @@ export default function FichaAluno({
     gravar(
       () => criarTreino(cliente, aluno.id, letra),
       `Não foi possível adicionar o treino ${letra}. Tente de novo.`,
-      () => setTreinos((atuais) => [...atuais, { letra, texto: '' }]),
+      () => {
+        setTreinos((atuais) => [...atuais, { letra, texto: '' }])
+        setSalvos((s) => ({ ...s, [letra]: '' }))
+      },
     )
 
   const salvar = (t: Treino) =>
     gravar(
       () => salvarTreino(cliente, aluno.id, t.letra, t.texto),
       `Não foi possível salvar o treino ${t.letra}. Tente de novo.`,
-      () => setSalvo(t.letra),
+      () => {
+        setSalvo(t.letra)
+        setSalvos((s) => ({ ...s, [t.letra]: t.texto }))
+      },
     )
 
   function remover(letra: Treino['letra']) {
@@ -62,7 +88,10 @@ export default function FichaAluno({
     return gravar(
       () => removerTreino(cliente, aluno.id, letra),
       `Não foi possível remover o treino ${letra}. Tente de novo.`,
-      () => setTreinos((atuais) => atuais.filter((t) => t.letra !== letra)),
+      () => {
+        setTreinos((atuais) => atuais.filter((t) => t.letra !== letra))
+        setSalvos((s) => ({ ...s, [letra]: undefined }))
+      },
     )
   }
 
