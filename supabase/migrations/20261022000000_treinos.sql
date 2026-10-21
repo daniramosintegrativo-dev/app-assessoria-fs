@@ -18,14 +18,32 @@ create table public.treinos (
 
 alter table public.treinos enable row level security;
 
--- Privilégios: começa do zero. O app só muda texto e data; aluno_id e letra
--- não mudam depois de criados.
+-- Privilégios: começa do zero. O app só muda o texto; aluno_id e letra não
+-- mudam depois de criados e a data é do servidor (gatilho abaixo).
 revoke all on table public.treinos from anon, authenticated;
 grant all on table public.treinos to service_role;
 grant select, insert, delete on table public.treinos to authenticated;
-grant update (texto, atualizado_em) on table public.treinos to authenticated;
+grant update (texto) on table public.treinos to authenticated;
 
--- Esse perfil é de um aluno?
+-- Renova a data a cada edição (o app não consegue gravar atualizado_em).
+create function public.treinos_atualizado_em()
+returns trigger
+language plpgsql
+set search_path = ''
+as $$
+begin
+  new.atualizado_em = now();
+  return new;
+end;
+$$;
+
+revoke execute on function public.treinos_atualizado_em() from public, anon, authenticated;
+
+create trigger ao_editar_treino
+  before update on public.treinos
+  for each row execute function public.treinos_atualizado_em();
+
+-- Esse perfil é de um aluno? Só responde a professor (a quem não é, sempre false).
 -- security definer: lê perfis sem passar pelo RLS (evita recursão nas políticas).
 create function public.e_perfil_aluno(perfil uuid)
 returns boolean
@@ -34,7 +52,7 @@ stable
 security definer
 set search_path = ''
 as $$
-  select exists (
+  select public.e_professor() and exists (
     select 1 from public.perfis where id = perfil and papel = 'aluno'
   );
 $$;

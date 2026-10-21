@@ -15,18 +15,18 @@ update public.perfis set ativo = true
 update public.perfis set ativo = true, precisa_trocar_senha = true
   where id = '00000000-0000-0000-0000-0000000000d4';
 -- Treinos semeados pelo serviço (ignora o RLS).
-insert into public.treinos (aluno_id, letra, texto) values
-  ('00000000-0000-0000-0000-0000000000d1', 'A', 'agachamento 4x8'),
-  ('00000000-0000-0000-0000-0000000000d2', 'A', 'supino 4x8'),
-  ('00000000-0000-0000-0000-0000000000d3', 'A', 'barra 3x5'),
-  ('00000000-0000-0000-0000-0000000000d4', 'A', 'remada 3x10');
+insert into public.treinos (aluno_id, letra, texto, atualizado_em) values
+  ('00000000-0000-0000-0000-0000000000d1', 'A', 'agachamento 4x8', '2000-01-01'),
+  ('00000000-0000-0000-0000-0000000000d2', 'A', 'supino 4x8', now()),
+  ('00000000-0000-0000-0000-0000000000d3', 'A', 'barra 3x5', now()),
+  ('00000000-0000-0000-0000-0000000000d4', 'A', 'remada 3x10', now());
 
 -- 1. Professor cria, edita e apaga.
 set role authenticated;
 set request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000000d0"}';
 insert into public.treinos (aluno_id, letra, texto)
   values ('00000000-0000-0000-0000-0000000000d1', 'B', 'terra 5x5');
-update public.treinos set texto = 'terra 5x3', atualizado_em = now()
+update public.treinos set texto = 'terra 5x3'
   where aluno_id = '00000000-0000-0000-0000-0000000000d1' and letra = 'B';
 do $$ begin
   assert (select texto from public.treinos
@@ -40,8 +40,25 @@ do $$ begin
   assert (select count(*) from public.treinos) = 4, 'professor deveria apagar';
 end $$;
 
--- 2. Professor não muda de quem é o treino (só texto e data).
+-- 1b. Atualizar o texto muda atualizado_em (o servidor decide a data).
+update public.treinos set texto = 'agachamento 5x5'
+  where aluno_id = '00000000-0000-0000-0000-0000000000d1' and letra = 'A';
 do $$ begin
+  assert (select atualizado_em from public.treinos
+    where aluno_id = '00000000-0000-0000-0000-0000000000d1' and letra = 'A') > '2000-01-02',
+    'atualizado_em deveria ser renovado pelo gatilho';
+end $$;
+update public.treinos set texto = 'agachamento 4x8'
+  where aluno_id = '00000000-0000-0000-0000-0000000000d1' and letra = 'A';
+
+-- 2. Professor não muda de quem é o treino, nem a data (só o texto).
+do $$ begin
+  begin
+    update public.treinos set atualizado_em = '2000-01-01'
+      where aluno_id = '00000000-0000-0000-0000-0000000000d1';
+    raise exception 'não deveria gravar atualizado_em';
+  exception when insufficient_privilege then null;
+  end;
   begin
     update public.treinos set aluno_id = '00000000-0000-0000-0000-0000000000d2'
       where aluno_id = '00000000-0000-0000-0000-0000000000d1';
@@ -58,6 +75,12 @@ do $$ begin
     raise exception 'treino para professor deveria ser recusado';
   exception when insufficient_privilege then null;
   end;
+end $$;
+
+-- 3b. Para o professor, e_perfil_aluno distingue aluno de professor.
+do $$ begin
+  assert public.e_perfil_aluno('00000000-0000-0000-0000-0000000000d2'), 'd2 é aluno';
+  assert not public.e_perfil_aluno('00000000-0000-0000-0000-0000000000d0'), 'd0 é professor';
 end $$;
 
 -- 4. Letra inválida, texto grande demais e letra repetida são recusados.
@@ -94,6 +117,12 @@ do $$ begin
   assert (select count(*) from public.treinos) = 1, 'aluno deveria ver só 1 treino';
   assert (select count(*) from public.treinos
     where aluno_id = '00000000-0000-0000-0000-0000000000d2') = 0, 'aluno não lê de outro';
+end $$;
+
+-- 5b. e_perfil_aluno não diz nada útil a quem não é professor.
+do $$ begin
+  assert not public.e_perfil_aluno('00000000-0000-0000-0000-0000000000d2'),
+    'aluno chamando e_perfil_aluno deveria receber false';
 end $$;
 
 -- 6. Aluno não escreve (nem no próprio treino).
