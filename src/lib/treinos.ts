@@ -27,14 +27,20 @@ export async function listarTreinos(cliente: SupabaseClient, alunoId: string): P
 export const criarTreino = (cliente: SupabaseClient, alunoId: string, letra: Treino['letra']) =>
   executar(cliente.from('treinos').insert({ aluno_id: alunoId, letra }))
 
+// Update/delete que o RLS bloqueia não dão erro: afetam 0 linhas.
+// Por isso pedimos as linhas afetadas de volta e vazio conta como erro.
+async function executarAfetando(
+  consulta: PromiseLike<{ data: unknown[] | null; error: unknown }>,
+): Promise<Resposta<null>> {
+  const r = await executar<unknown[]>(consulta)
+  return r.ok && r.dados && r.dados.length > 0 ? { ok: true, dados: null } : { ok: false, erro: ERRO_PADRAO }
+}
+
+// A data (atualizado_em) é gravada pelo banco, não pelo app.
 export const salvarTreino = (cliente: SupabaseClient, alunoId: string, letra: Treino['letra'], texto: string) =>
-  executar(
-    cliente
-      .from('treinos')
-      .update({ texto, atualizado_em: new Date().toISOString() })
-      .eq('aluno_id', alunoId)
-      .eq('letra', letra),
+  executarAfetando(
+    cliente.from('treinos').update({ texto }).eq('aluno_id', alunoId).eq('letra', letra).select('letra'),
   )
 
 export const removerTreino = (cliente: SupabaseClient, alunoId: string, letra: Treino['letra']) =>
-  executar(cliente.from('treinos').delete().eq('aluno_id', alunoId).eq('letra', letra))
+  executarAfetando(cliente.from('treinos').delete().eq('aluno_id', alunoId).eq('letra', letra).select('letra'))

@@ -9,6 +9,8 @@ type Opcoes = {
   // Treinos já salvos (de um aluno só). falhaTreinos: gravar/apagar devolve erro.
   treinos?: Treino[]
   falhaTreinos?: boolean
+  // Gravar/apagar não afeta linha nenhuma, sem erro (como o RLS faz ao bloquear).
+  semEfeitoTreinos?: boolean
 }
 
 // Cliente do Supabase de mentira, só com o que o app usa.
@@ -18,6 +20,7 @@ export function criarClienteFalso({
   erroPerfil = false,
   treinos = [],
   falhaTreinos = false,
+  semEfeitoTreinos = false,
 }: Opcoes = {}) {
   const sessaoAtual = sessao ? { user: { id: 'u1', email: 'a@x.com' } } : null
   const falso = {
@@ -30,7 +33,7 @@ export function criarClienteFalso({
     },
     from: vi.fn((tabela: string) =>
       tabela === 'treinos'
-        ? tabelaTreinosFalsa(treinos, falhaTreinos)
+        ? tabelaTreinosFalsa(treinos, falhaTreinos, semEfeitoTreinos)
         : {
             select: () => ({
               eq: () => ({
@@ -50,7 +53,7 @@ export function criarClienteFalso({
 
 // Tabela treinos de mentira, na memória: aceita select/insert/update/delete
 // encadeados com .eq() e .order(), como o supabase-js.
-function tabelaTreinosFalsa(guardados: Treino[], falha: boolean) {
+function tabelaTreinosFalsa(guardados: Treino[], falha: boolean, semEfeito: boolean) {
   const consulta = (operacao: 'select' | 'insert' | 'update' | 'delete', dados?: Record<string, unknown>) => {
     const filtros: Record<string, unknown> = {}
     const executar = () => {
@@ -58,13 +61,15 @@ function tabelaTreinosFalsa(guardados: Treino[], falha: boolean) {
       if (operacao === 'select') return { data: [...guardados].sort((a, b) => a.letra.localeCompare(b.letra)), error: null }
       if (falha) return { data: null, error: erro }
       if (operacao === 'insert') guardados.push({ letra: dados!.letra as Treino['letra'], texto: '' })
-      const alvo = guardados.findIndex((t) => t.letra === filtros.letra)
+      const alvo = semEfeito ? -1 : guardados.findIndex((t) => t.letra === filtros.letra)
       if (operacao === 'update' && alvo >= 0) guardados[alvo].texto = dados!.texto as string
       if (operacao === 'delete' && alvo >= 0) guardados.splice(alvo, 1)
-      return { data: null, error: null }
+      // Com .select(), update/delete devolvem as linhas afetadas (vazio se nenhuma).
+      return { data: operacao === 'insert' ? null : alvo >= 0 ? [{ letra: filtros.letra }] : [], error: null }
     }
     const api = {
       eq: (coluna: string, valor: unknown) => ((filtros[coluna] = valor), api),
+      select: () => api,
       order: () => api,
       then: (ok: (r: ReturnType<typeof executar>) => unknown) => Promise.resolve(executar()).then(ok),
     }

@@ -7,9 +7,9 @@ import FichaAluno from './FichaAluno'
 
 const ana = { id: 'id-ana', nome: 'Ana Souza', email: 'ana@x.com', ativo: true }
 
-function abrir(treinos: Treino[] = [], falhaTreinos = false) {
+function abrir(treinos: Treino[] = [], falhaTreinos = false, semEfeitoTreinos = false) {
   const voltar = vi.fn()
-  const { cliente, falso } = criarClienteFalso({ treinos, falhaTreinos })
+  const { cliente, falso } = criarClienteFalso({ treinos, falhaTreinos, semEfeitoTreinos })
   render(<FichaAluno cliente={cliente} aluno={ana} aoVoltar={voltar} />)
   return { falso, voltar }
 }
@@ -83,5 +83,20 @@ describe('FichaAluno', () => {
     await userEvent.click(await screen.findByRole('button', { name: 'Salvar treino A' }))
     expect(await screen.findByRole('alert')).toHaveTextContent('Não foi possível salvar')
     expect(screen.queryByText('Salvo')).not.toBeInTheDocument()
+  })
+
+  it('trata como erro o salvar que não afeta nenhuma linha', async () => {
+    abrir([{ letra: 'A', texto: '' }], false, true)
+    await userEvent.click(await screen.findByRole('button', { name: 'Salvar treino A' }))
+    expect(await screen.findByRole('alert')).toHaveTextContent('Não foi possível salvar')
+    expect(screen.queryByText('Salvo')).not.toBeInTheDocument()
+  })
+
+  it('trata como erro o remover que não afeta nenhuma linha', async () => {
+    vi.spyOn(window, 'confirm').mockReturnValue(true)
+    abrir([{ letra: 'A', texto: '' }], false, true)
+    await userEvent.click(await screen.findByRole('button', { name: 'Remover treino A' }))
+    expect(await screen.findByRole('alert')).toHaveTextContent('Não foi possível remover')
+    expect(screen.getByLabelText('Treino A')).toBeInTheDocument()
   })
 })
