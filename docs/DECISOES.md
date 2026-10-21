@@ -98,3 +98,13 @@ Substitui o orquestrador Sonnet da D11. Por orientação do mentor (Tiago), a
 sessão principal usa Opus 5.5 para planejar e coordenar, e delega a
 subagentes com o modelo mais adequado a cada tarefa (tabela em
 `docs/AGENTES.md`). Fable continua fora.
+
+## D14 — Ficha de treinos em texto livre (2026-10-21)
+Cada aluno tem de 1 a 4 treinos (A a D), cada um num bloco de texto livre, como
+um bloco de notas. Sem campos estruturados (exercício, séries, carga): é o que
+o professor já faz hoje e o app suporta de 1 a 4 sem mudar código. Só o
+professor escreve; o aluno ativo lê só os próprios.
+LGPD: o texto é livre, então o professor deve ser orientado a NÃO escrever
+diagnósticos nem dados de saúde na ficha (dado sensível). A política de
+privacidade (issue 17/18) deve citar a ficha de treinos entre os dados tratados.
+Origem: issue 05 e revisão de segurança.

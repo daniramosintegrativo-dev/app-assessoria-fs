@@ -7,3 +7,6 @@ export type Perfil = {
 }
 
 export type Aluno = { id: string; nome: string; email: string; ativo: boolean }
+
+// Treino de um aluno: texto livre, identificado pela letra (A a D).
+export type Treino = { letra: 'A' | 'B' | 'C' | 'D'; texto: string }

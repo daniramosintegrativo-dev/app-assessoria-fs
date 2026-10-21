@@ -2,6 +2,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { useCallback, useEffect, useState, type FormEvent } from 'react'
 import { ativarAluno, chamarGerenciarAluno, desativarAluno } from '../lib/alunos'
 import type { Aluno } from '../lib/tipos'
+import FichaAluno from './FichaAluno'
 
 type SenhaVisivel = { nome: string; senha: string; aviso?: boolean }
 
@@ -19,6 +20,8 @@ export default function AreaProfessor({ cliente }: { cliente: SupabaseClient }) 
   const [avisoSessoes, setAvisoSessoes] = useState(false)
   // Aluno com desativar/reativar em andamento (trava o botão contra toque duplo).
   const [ocupado, setOcupado] = useState<string | null>(null)
+  // Aluno cuja ficha de treinos está aberta (sem router: troca a tela aqui mesmo).
+  const [fichaDe, setFichaDe] = useState<Aluno | null>(null)
 
   const carregar = useCallback(
     () =>
@@ -93,6 +96,8 @@ export default function AreaProfessor({ cliente }: { cliente: SupabaseClient }) 
     }
   }
 
+  if (fichaDe) return <FichaAluno cliente={cliente} aluno={fichaDe} aoVoltar={() => setFichaDe(null)} />
+
   return (
     <section className="painel">
       <h1>Área do professor</h1>
@@ -153,6 +158,9 @@ export default function AreaProfessor({ cliente }: { cliente: SupabaseClient }) 
                 <div className="texto-secundario">{a.ativo ? 'Ativo' : 'Desativado'}</div>
               </div>
               <div className="linha">
+                <button className="botao botao--leve" type="button" onClick={() => setFichaDe(a)}>
+                  Ficha
+                </button>
                 <button className="botao botao--leve" type="button" onClick={() => novaSenha(a)}>
                   Gerar nova senha
                 </button>
