@@ -32,6 +32,15 @@ describe('AnotacoesAluno', () => {
     expect(screen.getByLabelText('Anotação')).toHaveAttribute('placeholder', 'Ex.: Agachamento 3x10 com 40 kg')
   })
 
+  it('avisa para não escrever dados de saúde e que o professor lê', async () => {
+    abrir()
+    expect(
+      await screen.findByText(
+        'Anote só séries, repetições e cargas. Não escreva dados de saúde (dores, lesões, remédios). O professor lê estas anotações.',
+      ),
+    ).toBeInTheDocument()
+  })
+
   it('usa o dia de São Paulo, mesmo que em UTC já seja o dia seguinte', async () => {
     vi.setSystemTime(new Date('2026-10-23T01:30:00Z'))
     abrir()

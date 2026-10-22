@@ -133,6 +133,8 @@ Para as issues de vídeo:
 Para as issues 17/18 (LGPD):
 - Falta o caminho de exclusão definitiva do aluno (apagar conta e dados a pedido).
 Para depois:
+- Anotações (issue 07): a lista mostra no máximo 100 por treino (aluno) e 100 no
+  total (professor). Melhoria futura: paginação ("Ver mais antigas").
 - `senha_trocada()` poderia provar que a senha mudou (comparar hash). Hoje o impacto
   é baixo: com troca pendente, `e_aluno_ativo()` é falso e nenhum conteúdo é liberado.
 - Professor pode desativar outro professor (aceitável com um professor só).

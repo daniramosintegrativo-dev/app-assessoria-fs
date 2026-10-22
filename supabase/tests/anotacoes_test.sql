@@ -48,6 +48,19 @@ insert into public.anotacoes (letra, data, texto) values
   ('B', date '2020-01-01', 'limite inferior');
 delete from public.anotacoes;
 
+-- 1c. Gatilho de verdade: linha antiga (2000) é renovada pela edição do aluno.
+reset role;
+insert into public.anotacoes (aluno_id, letra, data, texto, atualizado_em)
+  values ('00000000-0000-0000-0000-0000000000e1', 'D', '2026-10-03', 'antiga', '2000-01-01');
+set role authenticated;
+set request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000000e1"}';
+update public.anotacoes set texto = 'antiga editada' where texto = 'antiga';
+do $$ begin
+  assert (select atualizado_em from public.anotacoes where texto = 'antiga editada') > '2000-01-01',
+    'gatilho deveria renovar atualizado_em';
+end $$;
+delete from public.anotacoes where texto = 'antiga editada';
+
 -- 2. Aluno não lê, edita nem apaga as de outro.
 reset role;
 insert into public.anotacoes (aluno_id, letra, data, texto)
@@ -60,6 +73,14 @@ do $$ begin
 end $$;
 update public.anotacoes set texto = 'hackeado' where aluno_id = '00000000-0000-0000-0000-0000000000e2';
 delete from public.anotacoes where aluno_id = '00000000-0000-0000-0000-0000000000e2';
+reset role;
+do $$ begin
+  assert (select texto from public.anotacoes
+    where aluno_id = '00000000-0000-0000-0000-0000000000e2') = 'supino 3x10 40kg',
+    'aluno não pode editar nem apagar anotação de outro';
+end $$;
+set role authenticated;
+set request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000000e1"}';
 
 -- 3. Aluno não cria em nome de outro (nem escolhe aluno_id).
 do $$ begin
@@ -175,6 +196,13 @@ do $$ begin
 end $$;
 update public.anotacoes set texto = 'x';
 delete from public.anotacoes;
+reset role;
+do $$ begin
+  assert (select count(*) from public.anotacoes
+    where aluno_id = '00000000-0000-0000-0000-0000000000e3' and texto = 'barra 3x5') = 1,
+    'desativado não edita nem apaga';
+end $$;
+set role authenticated;
 set request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000000e4"}';
 do $$ begin
   assert (select count(*) from public.anotacoes) = 0, 'troca pendente não deveria ler';
@@ -189,8 +217,8 @@ delete from public.anotacoes;
 reset role;
 do $$ begin
   assert (select count(*) from public.anotacoes
-    where aluno_id in ('00000000-0000-0000-0000-0000000000e3', '00000000-0000-0000-0000-0000000000e4')
-      and texto <> 'x') = 2, 'desativado e troca pendente não escrevem';
+    where aluno_id = '00000000-0000-0000-0000-0000000000e4' and texto = 'remada 3x10') = 1,
+    'troca pendente não edita nem apaga';
 end $$;
 
 -- 8. Visitante (anon) não tem acesso à tabela.

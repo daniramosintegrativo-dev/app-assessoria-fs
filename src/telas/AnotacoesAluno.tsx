@@ -136,6 +136,10 @@ export default function AnotacoesAluno({
             onChange={(e) => setRascunhos((r) => ({ ...r, [letra]: e.target.value }))}
           />
         </label>
+        <p className="texto-secundario">
+          Anote só séries, repetições e cargas. Não escreva dados de saúde (dores, lesões, remédios). O professor lê
+          estas anotações.
+        </p>
         <button className="botao" type="button" disabled={ocupado} onClick={criar}>
           Salvar anotação
         </button>
