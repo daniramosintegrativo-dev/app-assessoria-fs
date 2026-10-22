@@ -1,6 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { vi } from 'vitest'
-import type { Perfil, Treino } from '../lib/tipos'
+import type { Anotacao, Perfil, Treino } from '../lib/tipos'
 
 type Opcoes = {
   sessao?: boolean
@@ -13,6 +13,11 @@ type Opcoes = {
   semEfeitoTreinos?: boolean
   // Ler os treinos devolve erro.
   falhaConsulta?: boolean
+  // Anotações já salvas (de um aluno só), mesmas chaves de falha dos treinos.
+  anotacoes?: Anotacao[]
+  falhaAnotacoes?: boolean
+  semEfeitoAnotacoes?: boolean
+  falhaConsultaAnotacoes?: boolean
 }
 
 // Cliente do Supabase de mentira, só com o que o app usa.
@@ -24,6 +29,10 @@ export function criarClienteFalso({
   falhaTreinos = false,
   semEfeitoTreinos = false,
   falhaConsulta = false,
+  anotacoes = [],
+  falhaAnotacoes = false,
+  semEfeitoAnotacoes = false,
+  falhaConsultaAnotacoes = false,
 }: Opcoes = {}) {
   const sessaoAtual = sessao ? { user: { id: 'u1', email: 'a@x.com' } } : null
   const falso = {
@@ -37,6 +46,8 @@ export function criarClienteFalso({
     from: vi.fn((tabela: string) =>
       tabela === 'treinos'
         ? tabelaTreinosFalsa(treinos, falhaTreinos, semEfeitoTreinos, falhaConsulta)
+        : tabela === 'anotacoes'
+        ? tabelaAnotacoesFalsa(anotacoes, falhaAnotacoes, semEfeitoAnotacoes, falhaConsultaAnotacoes)
         : {
             select: () => ({
               eq: () => ({
@@ -75,6 +86,46 @@ function tabelaTreinosFalsa(guardados: Treino[], falha: boolean, semEfeito: bool
       eq: (coluna: string, valor: unknown) => ((filtros[coluna] = valor), api),
       select: () => api,
       order: () => api,
+      then: (ok: (r: ReturnType<typeof executar>) => unknown) => Promise.resolve(executar()).then(ok),
+    }
+    return api
+  }
+  return {
+    select: () => consulta('select'),
+    insert: (dados: Record<string, unknown>) => consulta('insert', dados),
+    update: (dados: Record<string, unknown>) => consulta('update', dados),
+    delete: () => consulta('delete'),
+  }
+}
+
+// Tabela anotacoes de mentira, na memória. Como o banco: insert recebe só
+// letra/data/texto; select ordena por data (mais recente primeiro) e filtra por letra.
+function tabelaAnotacoesFalsa(guardadas: Anotacao[], falha: boolean, semEfeito: boolean, falhaLeitura: boolean) {
+  let contador = 0
+  const consulta = (operacao: 'select' | 'insert' | 'update' | 'delete', dados?: Record<string, unknown>) => {
+    const filtros: Record<string, unknown> = {}
+    const executar = () => {
+      const erro = { message: 'falhou' }
+      if (operacao === 'select' && falhaLeitura) return { data: null, error: erro }
+      if (operacao === 'select') {
+        const lista = guardadas.filter((a) => !filtros.letra || a.letra === filtros.letra)
+        return { data: lista.sort((a, b) => b.data.localeCompare(a.data)), error: null }
+      }
+      if (falha) return { data: null, error: erro }
+      if (operacao === 'insert') {
+        guardadas.push({ id: `novo${++contador}`, ...(dados as Omit<Anotacao, 'id'>) })
+        return { data: null, error: null }
+      }
+      const alvo = semEfeito ? -1 : guardadas.findIndex((a) => a.id === filtros.id)
+      if (operacao === 'update' && alvo >= 0) Object.assign(guardadas[alvo], dados)
+      if (operacao === 'delete' && alvo >= 0) guardadas.splice(alvo, 1)
+      return { data: alvo >= 0 ? [{ id: filtros.id }] : [], error: null }
+    }
+    const api = {
+      eq: (coluna: string, valor: unknown) => ((filtros[coluna] = valor), api),
+      select: () => api,
+      order: () => api,
+      limit: () => api,
       then: (ok: (r: ReturnType<typeof executar>) => unknown) => Promise.resolve(executar()).then(ok),
     }
     return api

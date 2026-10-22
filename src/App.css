@@ -260,3 +260,34 @@
   background: var(--cor-marinho);
   border-top: 2px solid var(--cor-laranja);
 }
+
+/* Anotações de carga: diário do aluno (lista por data) */
+.anotacoes {
+  margin: 24px 0;
+}
+
+.anotacoes__nova {
+  display: grid;
+  gap: 12px;
+  margin: 12px 0;
+}
+
+.anotacoes__lista {
+  padding: 0;
+  margin: 16px 0;
+  list-style: none;
+}
+
+.anotacao {
+  padding: 12px;
+  margin-bottom: 12px;
+  background: var(--cor-superficie);
+  border: var(--borda-fina) solid var(--cor-indigo);
+  border-radius: var(--raio);
+}
+
+.anotacao__texto {
+  margin: 8px 0;
+  overflow-wrap: anywhere;
+  line-height: 1.5;
+}
