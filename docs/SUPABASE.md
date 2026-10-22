@@ -18,7 +18,18 @@ pode variar um pouco):
 Mesmo que alguém religue isso por engano, toda conta nova nasce **desativada**
 e não vê nada até o professor ativar (convite da issue 03 ou painel).
 
-## Aplicar uma migração (pelo painel, sem instalar nada)
+## Migrações automáticas (desde 2026-10-22)
+O workflow `.github/workflows/deploy-functions.yml` aplica sozinho, ao juntar
+um PR na `main`, as migrações de `supabase/migrations/` que ainda faltam (na
+ordem) e só depois publica as Edge Functions. O Supabase guarda quais já
+foram aplicadas, então rodar de novo não repete nada.
+Configuração única: secret `SUPABASE_DB_URL` no GitHub (Settings → Secrets
+and variables → Actions) com o endereço **Session pooler** do banco (botão
+**Connect** na página do projeto), trocando `[YOUR-PASSWORD]` pela senha do
+banco. Esse secret dá acesso total ao banco: nunca o coloque em outro lugar.
+Se a senha do banco for trocada, atualize o secret.
+
+## Aplicar uma migração à mão (pelo painel; só se a automação falhar)
 1. Abra o projeto em https://supabase.com/dashboard.
 2. Menu da esquerda: **SQL Editor** → **New query**.
 3. Cole o conteúdo inteiro do arquivo da migração e clique em **Run**.

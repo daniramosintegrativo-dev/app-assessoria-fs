@@ -1,18 +1,40 @@
-# Publica as Edge Functions no Supabase quando algo em supabase/functions/
-# muda na main. Precisa do secret SUPABASE_ACCESS_TOKEN no GitHub
-# (token pessoal do Supabase; ver docs/SUPABASE.md).
+# Publica no Supabase o que mudou na main:
+# 1) migrações do banco (supabase/migrations), na ordem, só as que faltam;
+# 2) depois, as Edge Functions.
+# Secrets no GitHub (ver docs/SUPABASE.md):
+# - SUPABASE_DB_URL: endereço "Session pooler" do banco, com a senha.
+# - SUPABASE_ACCESS_TOKEN: token com escopo só de Edge Functions do projeto.
 name: deploy-functions
 on:
   push:
     branches: [main]
     paths:
+      - "supabase/migrations/**"
       - "supabase/functions/**"
       - ".github/workflows/deploy-functions.yml"
   workflow_dispatch:          # permite rodar manualmente
 permissions:
   contents: read
 jobs:
+  migrar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      - name: Aplicar migrações pendentes
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}   # só nesta etapa
+        run: |
+          if [ -z "$SUPABASE_DB_URL" ]; then echo "Falta o secret SUPABASE_DB_URL (ver docs/SUPABASE.md)."; exit 1; fi
+          # Estas foram aplicadas à mão pelo SQL Editor antes da automação:
+          # marca como aplicadas (pode repetir sem efeito).
+          supabase migration repair --db-url "$SUPABASE_DB_URL" --status applied 20261012000000 20261013000000 20261020000000 20261021000000 20261021000100 20261021000200 20261022000000
+          supabase db push --db-url "$SUPABASE_DB_URL" --yes
+
   deploy:
+    needs: migrar             # a função nova só sobe com o banco já atualizado
     runs-on: ubuntu-latest
     env:
       SUPABASE_PROJECT_REF: mayocglxeoyxrmetmdbl   # não é segredo (aparece na URL do projeto)
