@@ -108,3 +108,14 @@ LGPD: o texto é livre, então o professor deve ser orientado a NÃO escrever
 diagnósticos nem dados de saúde na ficha (dado sensível). A política de
 privacidade (issue 17/18) deve citar a ficha de treinos entre os dados tratados.
 Origem: issue 05 e revisão de segurança.
+
+## D15 — Anotação de cargas em formato diário (2026-10-22)
+A cada dia de treino o aluno cria uma anotação nova, com data, ligada a um
+treino (A a D). As anotações formam o histórico. O aluno cria, edita e apaga só
+as próprias; o professor só lê. A data padrão é hoje (fuso America/Sao_Paulo) e
+o aluno pode mudar (registrar depois). Texto livre (séries, repetições, peso),
+até 5000 caracteres. O banco recusa datas antes de 2020 ou depois de amanhã.
+LGPD: texto livre; orientar o aluno a não escrever dados de saúde. A política de
+privacidade (issue 17/18) deve citar as anotações; elas entram na limpeza de 6
+meses de inatividade (P12).
+Origem: issue 07 (resposta do professor à P1).
