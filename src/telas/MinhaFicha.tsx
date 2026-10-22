@@ -1,5 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { useEffect, useState } from 'react'
+import AnotacoesAluno from './AnotacoesAluno'
 import { listarTreinos } from '../lib/treinos'
 import type { Treino } from '../lib/tipos'
 
@@ -22,7 +23,7 @@ function guardarAba(letra: string) {
   }
 }
 
-// Ficha do aluno: só leitura. O RLS garante que ele só recebe os próprios treinos.
+// Ficha do aluno: treino só leitura e, embaixo, as anotações de carga dele. O RLS garante que ele só recebe os próprios treinos.
 export default function MinhaFicha({ cliente, alunoId }: { cliente: SupabaseClient; alunoId: string }) {
   const [treinos, setTreinos] = useState<Treino[]>([])
   const [carregando, setCarregando] = useState(true)
@@ -75,6 +76,7 @@ export default function MinhaFicha({ cliente, alunoId }: { cliente: SupabaseClie
       <div className="ficha-texto" style={{ whiteSpace: 'pre-wrap' }} role="tabpanel" id="painel-treino" aria-labelledby={`aba-${atual.letra}`}>
         {atual.texto}
       </div>
+      <AnotacoesAluno cliente={cliente} alunoId={alunoId} letra={atual.letra} />
     </section>
   )
 }

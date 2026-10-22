@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { Treino } from '../lib/tipos'
@@ -45,11 +45,37 @@ describe('MinhaFicha', () => {
     expect(texto).toHaveStyle({ whiteSpace: 'pre-wrap' })
   })
 
-  it('não oferece editar, salvar nem adicionar', async () => {
+  it('o treino em si não é editável (só as anotações do aluno)', async () => {
     abrir([{ letra: 'A', texto: 'x' }])
-    await screen.findByRole('tab', { name: 'Treino A' })
-    expect(screen.queryByRole('textbox')).not.toBeInTheDocument()
-    expect(screen.queryByRole('button')).not.toBeInTheDocument()
+    const painel = await screen.findByRole('tabpanel')
+    expect(within(painel).queryByRole('textbox')).not.toBeInTheDocument()
+    expect(within(painel).queryByRole('button')).not.toBeInTheDocument()
+  })
+
+  it('mostra as anotações do treino da aba aberta, abaixo do treino', async () => {
+    const { cliente } = criarClienteFalso({
+      treinos: [
+        { letra: 'A', texto: 'treino a' },
+        { letra: 'B', texto: 'treino b' },
+      ],
+      anotacoes: [
+        { id: '1', letra: 'A', data: '2026-10-20', texto: 'nota do A' },
+        { id: '2', letra: 'B', data: '2026-10-19', texto: 'nota do B' },
+      ],
+    })
+    render(<MinhaFicha cliente={cliente} alunoId="u1" />)
+    expect(await screen.findByRole('heading', { name: 'Minhas anotações — Treino A' })).toBeInTheDocument()
+    expect(await screen.findByText('nota do A')).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('tab', { name: 'Treino B' }))
+    expect(await screen.findByRole('heading', { name: 'Minhas anotações — Treino B' })).toBeInTheDocument()
+    expect(await screen.findByText('nota do B')).toBeInTheDocument()
+    expect(screen.queryByText('nota do A')).not.toBeInTheDocument()
+  })
+
+  it('sem ficha, não mostra anotações', async () => {
+    abrir([])
+    await screen.findByText('Seu professor ainda não montou sua ficha.')
+    expect(screen.queryByRole('heading', { name: /Minhas anotações/ })).not.toBeInTheDocument()
   })
 
   it('sem treinos avisa que o professor ainda não montou a ficha', async () => {
