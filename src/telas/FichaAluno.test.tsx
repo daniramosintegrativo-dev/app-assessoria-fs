@@ -139,4 +139,17 @@ describe('FichaAluno', () => {
     desmontar()
     expect(haPendencias()).toBe(false)
   })
+
+  it('mostra as anotações do aluno só para leitura, depois dos treinos', async () => {
+    const { cliente } = criarClienteFalso({
+      treinos: [{ letra: 'A', texto: 'agachamento' }],
+      anotacoes: [{ id: '1', letra: 'A', data: '2026-10-20', texto: 'agachamento 40 kg' }],
+    })
+    render(<FichaAluno cliente={cliente} aluno={ana} aoVoltar={vi.fn()} />)
+    expect(await screen.findByRole('heading', { name: 'Anotações do aluno' })).toBeInTheDocument()
+    expect(await screen.findByText('agachamento 40 kg')).toBeInTheDocument()
+    // Só os campos dos treinos são editáveis; as anotações não ganham botões.
+    expect(screen.queryByRole('button', { name: /anotação/i })).not.toBeInTheDocument()
+    expect(screen.getAllByRole('textbox')).toHaveLength(1)
+  })
 })

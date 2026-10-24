@@ -1,5 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { useEffect, useState } from 'react'
+import AnotacoesProfessor from './AnotacoesProfessor'
 import { marcar } from '../lib/pendencias'
 import { LETRAS, criarTreino, listarTreinos, removerTreino, salvarTreino } from '../lib/treinos'
 import type { Aluno, Treino } from '../lib/tipos'
@@ -143,6 +144,8 @@ export default function FichaAluno({
           )}
         </>
       )}
+
+      <AnotacoesProfessor cliente={cliente} alunoId={aluno.id} />
     </section>
   )
 }

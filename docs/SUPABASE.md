@@ -18,7 +18,18 @@ pode variar um pouco):
 Mesmo que alguém religue isso por engano, toda conta nova nasce **desativada**
 e não vê nada até o professor ativar (convite da issue 03 ou painel).
 
-## Aplicar uma migração (pelo painel, sem instalar nada)
+## Migrações automáticas (desde 2026-10-22)
+O workflow `.github/workflows/deploy-functions.yml` aplica sozinho, ao juntar
+um PR na `main`, as migrações de `supabase/migrations/` que ainda faltam (na
+ordem) e só depois publica as Edge Functions. O Supabase guarda quais já
+foram aplicadas, então rodar de novo não repete nada.
+Configuração única: secret `SUPABASE_DB_URL` no GitHub (Settings → Secrets
+and variables → Actions) com o endereço **Session pooler** do banco (botão
+**Connect** na página do projeto), trocando `[YOUR-PASSWORD]` pela senha do
+banco. Esse secret dá acesso total ao banco: nunca o coloque em outro lugar.
+Se a senha do banco for trocada, atualize o secret.
+
+## Aplicar uma migração à mão (pelo painel; só se a automação falhar)
 1. Abra o projeto em https://supabase.com/dashboard.
 2. Menu da esquerda: **SQL Editor** → **New query**.
 3. Cole o conteúdo inteiro do arquivo da migração e clique em **Run**.
@@ -52,6 +63,7 @@ testes de `supabase/tests/`. Não toca no Supabase de verdade.
 | `20261021000100_senha_provisoria_em.sql` | `senha_provisoria_em`: token antigo não zera a troca de senha (issue 04) | sim, 2026-10-20 |
 | `20261021000200_ativo_so_pela_funcao.sql` | Tira do app o update direto de `ativo`: só a Edge Function ativa/desativa (issue 04) | sim, 2026-10-20 |
 | `20261022000000_treinos.sql` | Tabela `treinos` (A–D, texto livre) com RLS: só o professor escreve (issue 05) | sim, 2026-10-21 |
+| `20261023000000_anotacoes.sql` | Tabela `anotacoes` (diário de cargas do aluno, D15) com RLS: só o aluno escreve, professor só lê (issue 07) | **pendente** |
 
 Depois de aplicar a migração, publique de novo a função `gerenciar-aluno`
 (ela passou a chamar `encerrar_sessoes`).
@@ -132,6 +144,8 @@ Para as issues de vídeo:
 Para as issues 17/18 (LGPD):
 - Falta o caminho de exclusão definitiva do aluno (apagar conta e dados a pedido).
 Para depois:
+- Anotações (issue 07): a lista mostra no máximo 100 por treino (aluno) e 100 no
+  total (professor). Melhoria futura: paginação ("Ver mais antigas").
 - `senha_trocada()` poderia provar que a senha mudou (comparar hash). Hoje o impacto
   é baixo: com troca pendente, `e_aluno_ativo()` é falso e nenhum conteúdo é liberado.
 - Professor pode desativar outro professor (aceitável com um professor só).

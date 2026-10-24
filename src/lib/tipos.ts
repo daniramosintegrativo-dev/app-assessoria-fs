@@ -10,3 +10,6 @@ export type Aluno = { id: string; nome: string; email: string; ativo: boolean }
 
 // Treino de um aluno: texto livre, identificado pela letra (A a D).
 export type Treino = { letra: 'A' | 'B' | 'C' | 'D'; texto: string }
+
+// Anotação de carga do aluno: um dia de treino (data AAAA-MM-DD), ligada a um treino.
+export type Anotacao = { id: string; letra: Treino['letra']; data: string; texto: string }

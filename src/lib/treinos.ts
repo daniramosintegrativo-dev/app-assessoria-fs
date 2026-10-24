@@ -4,11 +4,11 @@ import type { Treino } from './tipos'
 
 export const LETRAS: Treino['letra'][] = ['A', 'B', 'C', 'D']
 
-const ERRO_PADRAO = 'Algo deu errado. Tente de novo.'
+export const ERRO_PADRAO = 'Algo deu errado. Tente de novo.'
 
 // Acesso direto ao banco: quem protege é o RLS (só o professor escreve).
 // Erros do banco não vão para a tela (podem expor detalhes); só a mensagem padrão.
-async function executar<T>(consulta: PromiseLike<{ data: T | null; error: unknown }>): Promise<Resposta<T | null>> {
+export async function executar<T>(consulta: PromiseLike<{ data: T | null; error: unknown }>): Promise<Resposta<T | null>> {
   try {
     const { data, error } = await consulta
     return error ? { ok: false, erro: ERRO_PADRAO } : { ok: true, dados: data }
@@ -29,7 +29,7 @@ export const criarTreino = (cliente: SupabaseClient, alunoId: string, letra: Tre
 
 // Update/delete que o RLS bloqueia não dão erro: afetam 0 linhas.
 // Por isso pedimos as linhas afetadas de volta e vazio conta como erro.
-async function executarAfetando(
+export async function executarAfetando(
   consulta: PromiseLike<{ data: unknown[] | null; error: unknown }>,
 ): Promise<Resposta<null>> {
   const r = await executar<unknown[]>(consulta)
