@@ -27,7 +27,16 @@ jobs:
         env:
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}   # só nesta etapa
         run: |
-          if [ -z "$SUPABASE_DB_URL" ]; then echo "Falta o secret SUPABASE_DB_URL (ver docs/SUPABASE.md)."; exit 1; fi
+          # Tira espaços e quebras de linha que vêm junto ao copiar do celular.
+          URL=$(printf '%s' "$SUPABASE_DB_URL" | tr -d '[:space:]')
+          if [ -z "$URL" ]; then echo "Falta o secret SUPABASE_DB_URL (ver docs/SUPABASE.md)."; exit 1; fi
+          # Diagnóstico sem mostrar a senha.
+          case "$URL" in postgresql://*|postgres://*) ;; *) echo "O secret não começa com postgresql://"; exit 1;; esac
+          SENHA=${URL#*://*:}; SENHA=${SENHA%@*}
+          case "$SENHA" in *"["*|*"]"*) echo "A senha no secret ainda tem colchetes [ ]: apague-os."; exit 1;; esac
+          case "$SENHA" in *"YOUR-PASSWORD"*) echo "O secret ainda tem o texto YOUR-PASSWORD: troque pela senha."; exit 1;; esac
+          case "$SENHA" in *[@/?#%:]*) echo "A senha tem símbolo especial (@ / ? # % :): gere uma senha sem esses símbolos."; exit 1;; esac
+          SUPABASE_DB_URL=$URL
           # Estas foram aplicadas à mão pelo SQL Editor antes da automação:
           # marca como aplicadas (pode repetir sem efeito).
           supabase migration repair --db-url "$SUPABASE_DB_URL" --status applied 20261012000000 20261013000000 20261020000000 20261021000000 20261021000100 20261021000200 20261022000000
