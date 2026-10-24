@@ -38,10 +38,13 @@ jobs:
           credenciais, servidor = resto.rsplit("@", 1)
           usuario, senha = credenciais.split(":", 1)
           print(f"{esquema}://{usuario}:{u.quote(u.unquote(senha), safe=str())}@{servidor}")') || { echo "O secret não tem o formato postgresql://usuario:senha@servidor/postgres"; exit 1; }
-          # Estas foram aplicadas à mão pelo SQL Editor antes da automação:
+          # Estas foram aplicadas à mão pelo SQL Editor antes da automação
+          # (a 20261023000000 também foi colada no painel em 2026-10-23):
           # marca como aplicadas (pode repetir sem efeito).
-          supabase migration repair --db-url "$SUPABASE_DB_URL" --status applied 20261012000000 20261013000000 20261020000000 20261021000000 20261021000100 20261021000200 20261022000000
+          supabase migration repair --db-url "$SUPABASE_DB_URL" --status applied 20261012000000 20261013000000 20261020000000 20261021000000 20261021000100 20261021000200 20261022000000 20261023000000
           supabase db push --db-url "$SUPABASE_DB_URL" --yes
+          # Conferência: toda tabela de public com RLS; mostra as políticas por tabela.
+          psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -At -c "select 'tabelas sem RLS: ' || count(*) from pg_class c join pg_namespace n on n.oid = c.relnamespace where n.nspname = 'public' and c.relkind = 'r' and not c.relrowsecurity" -c "select tablename || ': ' || count(*) || ' políticas' from pg_policies where schemaname = 'public' group by tablename order by tablename" -c "select 'gatilhos: ' || string_agg(tgname, ', ' order by tgname) from pg_trigger where not tgisinternal and tgrelid::regclass::text like 'public.%'"
 
   deploy:
     needs: migrar             # a função nova só sobe com o banco já atualizado
