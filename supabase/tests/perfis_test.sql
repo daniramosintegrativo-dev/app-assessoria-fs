@@ -32,7 +32,7 @@ reset role;
 -- O professor é promovido manualmente e os alunos são ativados (convite/painel).
 update public.perfis set papel = 'professor', ativo = true where id = '00000000-0000-0000-0000-00000000000a';
 -- (marca também o aceite de privacidade, exigido por e_aluno_ativo)
-update public.perfis set ativo = true, privacidade_versao = '2026-10-27' where papel = 'aluno';
+update public.perfis set ativo = true, privacidade_versao = '2026-10-28' where papel = 'aluno';
 
 -- 2. RLS ligado na tabela.
 do $$ begin

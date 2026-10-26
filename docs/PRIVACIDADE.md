@@ -1,6 +1,6 @@
 # Sua privacidade
 
-Texto mostrado ao aluno no primeiro acesso (versão 2026-10-27). É o mesmo de
+Texto mostrado ao aluno no primeiro acesso (versão 2026-10-28). É o mesmo de
 `src/telas/Privacidade.tsx`; ao mudar um, mude o outro e a versão (veja D16).
 Revisável por profissional de direito. O e-mail de contato ainda será definido.
 

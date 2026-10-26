@@ -25,6 +25,26 @@ do $$ begin
   assert (select count(*) from public.perfis) = 1, 'o próprio perfil continua visível';
 end $$;
 
+-- 1b. Sem aceite não cria anotação (o RLS de escrita também exige aluno ativo).
+do $$ begin
+  begin
+    insert into public.anotacoes (aluno_id, letra, data, texto)
+      values (auth.uid(), 'A', current_date, 'tentativa sem aceite');
+    raise exception 'sem aceite não deveria criar anotação';
+  exception when insufficient_privilege then null;
+  end;
+end $$;
+
+-- 1c. A tabela de histórico é vazia e o app não grava nela.
+do $$ begin
+  assert (select count(*) from public.aceites_privacidade) = 0, 'sem aceite, sem histórico';
+  begin
+    insert into public.aceites_privacidade (aluno_id, versao) values (auth.uid(), '2026-10-28');
+    raise exception 'app não deveria gravar o histórico';
+  exception when insufficient_privilege then null;
+  end;
+end $$;
+
 -- 2. Versão errada é recusada e nada é gravado.
 do $$ begin
   begin
@@ -40,7 +60,7 @@ end $$;
 -- 3. Aluno não altera as colunas por update direto.
 do $$ begin
   begin
-    update public.perfis set privacidade_versao = '2026-10-27' where id = auth.uid();
+    update public.perfis set privacidade_versao = '2026-10-28' where id = auth.uid();
     raise exception 'aluno não deveria mudar privacidade_versao';
   exception when insufficient_privilege then null;
   end;
@@ -52,7 +72,7 @@ do $$ begin
 end $$;
 
 -- 4. Aceitar a versão atual libera o conteúdo.
-select public.aceitar_privacidade('2026-10-27');
+select public.aceitar_privacidade('2026-10-28');
 do $$ begin
   assert public.e_aluno_ativo(), 'após aceitar deveria ser aluno ativo';
   assert (select count(*) from public.treinos) = 1, 'após aceitar lê treinos';
@@ -63,11 +83,44 @@ reset role;
 -- 5. Aceitar grava versão e data só no próprio perfil.
 do $$ begin
   assert (select privacidade_versao from public.perfis
-    where id = '00000000-0000-0000-0000-0000000000f1') = '2026-10-27', 'versão gravada';
+    where id = '00000000-0000-0000-0000-0000000000f1') = '2026-10-28', 'versão gravada';
   assert (select privacidade_aceita_em is not null from public.perfis
     where id = '00000000-0000-0000-0000-0000000000f1'), 'data gravada';
   assert (select privacidade_versao is null and privacidade_aceita_em is null from public.perfis
     where id = '00000000-0000-0000-0000-0000000000f2'), 'perfil de outro não pode mudar';
+end $$;
+
+-- 5b. O aceite entrou no histórico; cada um vê só o seu, o professor vê todos.
+do $$ begin
+  assert (select count(*) from public.aceites_privacidade
+    where aluno_id = '00000000-0000-0000-0000-0000000000f1' and versao = '2026-10-28') = 1,
+    'histórico deveria ter 1 aceite do f1';
+  assert (select count(*) from public.aceites_privacidade) = 1, 'só o aceite do f1 existe';
+end $$;
+set role authenticated;
+set request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000000f1"}';
+do $$ begin
+  assert (select count(*) from public.aceites_privacidade) = 1, 'aluno vê o próprio aceite';
+  begin
+    delete from public.aceites_privacidade;
+    raise exception 'aluno não deveria apagar o histórico';
+  exception when insufficient_privilege then null;
+  end;
+end $$;
+set request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000000f2"}';
+do $$ begin
+  assert (select count(*) from public.aceites_privacidade) = 0, 'aluno não vê aceite de outro';
+end $$;
+set request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000000f0"}';
+do $$ begin
+  assert (select count(*) from public.aceites_privacidade) = 1, 'professor vê o histórico';
+end $$;
+reset role;
+do $$ begin
+  assert not has_table_privilege('anon', 'public.aceites_privacidade', 'select'), 'anon não lê';
+  assert (select relrowsecurity from pg_class where oid = 'public.aceites_privacidade'::regclass),
+    'RLS deve estar ativo no histórico';
+  assert public.versao_privacidade_atual() = '2026-10-28', 'versão atual única';
 end $$;
 
 -- 6. Versão antiga (aceite de texto anterior) bloqueia de novo.
@@ -89,7 +142,7 @@ do $$ begin
 end $$;
 set role authenticated;
 set request.jwt.claims = '{}';
-select public.aceitar_privacidade('2026-10-27');
+select public.aceitar_privacidade('2026-10-28');
 reset role;
 do $$ begin
   assert (select privacidade_versao from public.perfis
@@ -106,6 +159,7 @@ end $$;
 reset role;
 
 -- Limpa o que semeei: os testes seguintes contam linhas de treinos/anotações.
+delete from public.aceites_privacidade where aluno_id = '00000000-0000-0000-0000-0000000000f1';
 delete from public.treinos where aluno_id = '00000000-0000-0000-0000-0000000000f1';
 delete from public.anotacoes where aluno_id = '00000000-0000-0000-0000-0000000000f1';
 

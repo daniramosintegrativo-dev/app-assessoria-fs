@@ -10,9 +10,12 @@ insert into auth.users (id, email) values
   ('00000000-0000-0000-0000-0000000000e4', 'alunoe4@teste');
 update public.perfis set papel = 'professor', ativo = true
   where id = '00000000-0000-0000-0000-0000000000e0';
-update public.perfis set ativo = true, privacidade_versao = '2026-10-27'
+update public.perfis set ativo = true, privacidade_versao = '2026-10-28'
   where id in ('00000000-0000-0000-0000-0000000000e1', '00000000-0000-0000-0000-0000000000e2');
-update public.perfis set ativo = true, precisa_trocar_senha = true, privacidade_versao = '2026-10-27'
+-- e3 segue desativado, mas com aceite: assim o teste de desativação vale de fato.
+update public.perfis set privacidade_versao = '2026-10-28'
+  where id = '00000000-0000-0000-0000-0000000000e3';
+update public.perfis set ativo = true, precisa_trocar_senha = true, privacidade_versao = '2026-10-28'
   where id = '00000000-0000-0000-0000-0000000000e4';
 -- Anotações semeadas pelo serviço (ignora o RLS). A do e2 serve de "alheia".
 insert into public.anotacoes (aluno_id, letra, data, texto, atualizado_em) values
