@@ -63,7 +63,7 @@ testes de `supabase/tests/`. Não toca no Supabase de verdade.
 | `20261021000100_senha_provisoria_em.sql` | `senha_provisoria_em`: token antigo não zera a troca de senha (issue 04) | sim, 2026-10-20 |
 | `20261021000200_ativo_so_pela_funcao.sql` | Tira do app o update direto de `ativo`: só a Edge Function ativa/desativa (issue 04) | sim, 2026-10-20 |
 | `20261022000000_treinos.sql` | Tabela `treinos` (A–D, texto livre) com RLS: só o professor escreve (issue 05) | sim, 2026-10-21 |
-| `20261023000000_anotacoes.sql` | Tabela `anotacoes` (diário de cargas do aluno, D15) com RLS: só o aluno escreve, professor só lê (issue 07) | **pendente** |
+| `20261023000000_anotacoes.sql` | Tabela `anotacoes` (diário de cargas do aluno, D15) com RLS: só o aluno escreve, professor só lê (issue 07) | sim, 2026-10-23 (painel; registrada pela automação em 2026-10-24) |
 
 Depois de aplicar a migração, publique de novo a função `gerenciar-aluno`
 (ela passou a chamar `encerrar_sessoes`).
