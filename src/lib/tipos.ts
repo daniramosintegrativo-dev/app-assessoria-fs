@@ -4,6 +4,8 @@ export type Perfil = {
   papel: 'professor' | 'aluno'
   ativo: boolean
   precisa_trocar_senha: boolean
+  // Versão do aviso de privacidade aceita (null = ainda não aceitou).
+  privacidade_versao: string | null
 }
 
 export type Aluno = { id: string; nome: string; email: string; ativo: boolean }

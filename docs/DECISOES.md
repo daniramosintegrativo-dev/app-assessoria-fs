@@ -119,3 +119,14 @@ LGPD: texto livre; orientar o aluno a não escrever dados de saúde. A política
 privacidade (issue 17/18) deve citar as anotações; elas entram na limpeza de 6
 meses de inatividade (P12).
 Origem: issue 07 (resposta do professor à P1).
+
+## D16 — Aceite de privacidade obrigatório e versionado (2026-10-27)
+O aluno só acessa o conteúdo depois de aceitar a versão atual do aviso de
+privacidade (`docs/PRIVACIDADE.md`). O aceite (versão + data) fica no perfil e
+o bloqueio é no banco: `e_aluno_ativo()` exige a versão atual, então sem aceite
+nenhuma política de conteúdo libera nada. Só a função `aceitar_privacidade()`
+grava o aceite, e só para o próprio usuário. Texto novo = mudar a versão na
+migração e em `src/lib/privacidade.ts`; todo aluno aceita de novo. O professor
+não precisa aceitar. O consentimento de uso de imagem fica para quando existir
+vídeo. Texto revisável por profissional de direito; e-mail de contato a definir.
+Origem: issue 17.

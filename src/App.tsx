@@ -2,10 +2,12 @@ import type { Session, SupabaseClient } from '@supabase/supabase-js'
 import { useEffect, useState, type ReactNode } from 'react'
 import './App.css'
 import type { Perfil } from './lib/tipos'
+import { VERSAO_PRIVACIDADE } from './lib/privacidade'
 import { supabase } from './lib/supabase'
 import AreaProfessor from './telas/AreaProfessor'
 import Login from './telas/Login'
 import MinhaFicha from './telas/MinhaFicha'
+import Privacidade from './telas/Privacidade'
 import TrocaSenha from './telas/TrocaSenha'
 
 // Estado do perfil: carregando, erro de rede, ou o resultado (null = sem acesso).
@@ -19,18 +21,22 @@ function Aviso({ children }: { children: ReactNode }) {
   )
 }
 
-// Moldura das telas de quem está logado: título e botão Sair.
+// Moldura das telas de quem está logado: título, botão Sair e link Privacidade.
 function Casca({ cliente, children }: { cliente: SupabaseClient; children: ReactNode }) {
+  const [lendo, setLendo] = useState(false)
   return (
     <>
       <header className="topo">
         <img src="/logo.png" alt="" width="40" height="40" />
         <span className="topo__nome">Físico Sagrado</span>
+        <button className="botao botao--leve" type="button" onClick={() => setLendo(!lendo)}>
+          {lendo ? 'Voltar' : 'Privacidade'}
+        </button>
         <button className="botao botao--leve" type="button" onClick={() => void cliente.auth.signOut()}>
           Sair
         </button>
       </header>
-      <main className="conteudo">{children}</main>
+      <main className="conteudo">{lendo ? <Privacidade /> : children}</main>
     </>
   )
 }
@@ -43,7 +49,7 @@ function Logado({ cliente, sessao }: { cliente: SupabaseClient; sessao: Session 
     let atual = true
     cliente
       .from('perfis')
-      .select('nome, papel, ativo, precisa_trocar_senha')
+      .select('nome, papel, ativo, precisa_trocar_senha, privacidade_versao')
       .eq('id', idUsuario)
       .maybeSingle()
       .then(({ data, error }) => {
@@ -65,6 +71,9 @@ function Logado({ cliente, sessao }: { cliente: SupabaseClient; sessao: Session 
   } else if (perfil.precisa_trocar_senha) {
     // Enquanto a troca estiver pendente, nada mais é mostrado.
     tela = <TrocaSenha cliente={cliente} aoConcluir={() => setPerfil({ ...perfil, precisa_trocar_senha: false })} />
+  } else if (perfil.papel === 'aluno' && perfil.privacidade_versao !== VERSAO_PRIVACIDADE) {
+    // Sem aceite da versão atual o banco também não libera o conteúdo.
+    tela = <Privacidade cliente={cliente} aoAceitar={() => setPerfil({ ...perfil, privacidade_versao: VERSAO_PRIVACIDADE })} />
   } else if (perfil.papel === 'professor') {
     tela = <AreaProfessor cliente={cliente} />
   } else {

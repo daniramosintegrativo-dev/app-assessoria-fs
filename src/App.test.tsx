@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { VERSAO_PRIVACIDADE } from './lib/privacidade'
 import type { Perfil } from './lib/tipos'
 import { criarClienteFalso } from './test/clienteFalso'
 
@@ -14,8 +15,8 @@ vi.mock('./lib/supabase', () => ({
 
 import App from './App'
 
-const aluno: Perfil = { nome: 'Carla', papel: 'aluno', ativo: true, precisa_trocar_senha: false }
-const professor: Perfil = { nome: 'Prof', papel: 'professor', ativo: true, precisa_trocar_senha: false }
+const aluno: Perfil = { nome: 'Carla', papel: 'aluno', ativo: true, precisa_trocar_senha: false, privacidade_versao: VERSAO_PRIVACIDADE }
+const professor: Perfil = { nome: 'Prof', papel: 'professor', ativo: true, precisa_trocar_senha: false, privacidade_versao: VERSAO_PRIVACIDADE }
 
 function abrir(opcoes: Parameters<typeof criarClienteFalso>[0]) {
   const { cliente, falso } = criarClienteFalso(opcoes)
@@ -82,5 +83,57 @@ describe('App', () => {
     abrir({ sessao: true, perfil: aluno, erroPerfil: true })
     expect(await screen.findByRole('alert')).toHaveTextContent('Não foi possível carregar')
     expect(screen.queryByRole('heading', { name: /Olá/ })).not.toBeInTheDocument()
+  })
+
+  it('aluno sem aceite vê a privacidade e não vê a ficha', async () => {
+    abrir({ sessao: true, perfil: { ...aluno, privacidade_versao: null }, treinos: [{ letra: 'A', texto: 'agachamento' }] })
+    expect(await screen.findByRole('heading', { name: 'Sua privacidade' })).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: /Olá/ })).not.toBeInTheDocument()
+    expect(screen.queryByText('agachamento')).not.toBeInTheDocument()
+  })
+
+  it('aluno com versão antiga aceita de novo', async () => {
+    abrir({ sessao: true, perfil: { ...aluno, privacidade_versao: '2020-01-01' } })
+    expect(await screen.findByRole('button', { name: 'Li e aceito' })).toBeInTheDocument()
+  })
+
+  it('aceitar leva à ficha', async () => {
+    const falso = abrir({
+      sessao: true, perfil: { ...aluno, privacidade_versao: null },
+      treinos: [{ letra: 'A', texto: 'agachamento' }],
+    })
+    await userEvent.click(await screen.findByRole('button', { name: 'Li e aceito' }))
+    expect(falso.rpc).toHaveBeenCalledWith('aceitar_privacidade', { versao: VERSAO_PRIVACIDADE })
+    expect(await screen.findByRole('heading', { name: 'Olá, Carla' })).toBeInTheDocument()
+    expect(await screen.findByText('agachamento')).toBeInTheDocument()
+  })
+
+  it('troca de senha vem antes da privacidade', async () => {
+    abrir({ sessao: true, perfil: { ...aluno, precisa_trocar_senha: true, privacidade_versao: null } })
+    expect(await screen.findByRole('heading', { name: 'Crie sua senha' })).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Sua privacidade' })).not.toBeInTheDocument()
+  })
+
+  it('professor não vê a tela de aceite', async () => {
+    abrir({ sessao: true, perfil: { ...professor, privacidade_versao: null } })
+    expect(await screen.findByRole('button', { name: 'Cadastrar aluno' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Li e aceito' })).not.toBeInTheDocument()
+  })
+
+  it('o link Privacidade abre o texto sem botão de aceite e dá para voltar', async () => {
+    abrir({ sessao: true, perfil: aluno })
+    await screen.findByRole('heading', { name: 'Olá, Carla' })
+    await userEvent.click(screen.getByRole('button', { name: 'Privacidade' }))
+    expect(screen.getByRole('heading', { name: 'Sua privacidade' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Li e aceito' })).not.toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'Voltar' }))
+    expect(screen.getByRole('heading', { name: 'Olá, Carla' })).toBeInTheDocument()
+  })
+
+  it('o professor também tem o link Privacidade', async () => {
+    abrir({ sessao: true, perfil: professor })
+    await screen.findByRole('button', { name: 'Cadastrar aluno' })
+    await userEvent.click(screen.getByRole('button', { name: 'Privacidade' }))
+    expect(screen.getByRole('heading', { name: 'Sua privacidade' })).toBeInTheDocument()
   })
 })
