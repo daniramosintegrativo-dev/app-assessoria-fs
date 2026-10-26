@@ -1,6 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { useState } from 'react'
-import { EMAIL_CONTATO, VERSAO_PRIVACIDADE } from '../lib/privacidade'
+import { EMAIL_CONTATO, RESPONSAVEL_DOCUMENTO, RESPONSAVEL_NOME, VERSAO_PRIVACIDADE } from '../lib/privacidade'
 
 // "27 de outubro de 2026" a partir de AAAA-MM-DD (sem mexer com fuso).
 const MESES = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho',
@@ -35,38 +35,44 @@ export default function Privacidade({ cliente, aoAceitar }: Props) {
     <section className="painel privacidade">
       <h1>Sua privacidade</h1>
       <h2>Quem cuida dos seus dados</h2>
-      <p>A Físico Sagrado, assessoria do seu professor, é a responsável pelos seus dados neste app.</p>
+      <p>
+        Responsável: {RESPONSAVEL_NOME} ({RESPONSAVEL_DOCUMENTO}), da Físico Sagrado.
+      </p>
       <h2>Quais dados</h2>
       <p>
-        Seu nome, seu e-mail, sua ficha de treino e as anotações de carga que você escreve.
-        No futuro, vídeos e conversas, com um aviso próprio antes.
+        Seu nome, seu e-mail, sua ficha de treino, as anotações de carga que você
+        escreve, a data do seu aceite e registros técnicos de acesso (data de
+        login, endereço IP). No futuro, vídeos e conversas, com um aviso próprio antes.
       </p>
       <h2>Para quê</h2>
-      <p>Só para acompanhar e orientar o seu treino.</p>
+      <p>
+        Usamos seus dados para prestar o serviço de assessoria que você contratou:
+        acompanhar e orientar o seu treino.
+      </p>
       <h2>Quem vê</h2>
       <p>
-        Só você e o professor. Ninguém mais. Não vendemos seus dados nem os
-        compartilhamos para propaganda.
+        Só você e o professor. Os serviços que hospedam o app (Supabase e
+        Cloudflare) guardam os dados para nós, sem uso próprio. Não vendemos seus
+        dados nem os compartilhamos para propaganda.
       </p>
       <h2>Onde ficam</h2>
       <p>
-        No Supabase, com servidores em São Paulo. A Cloudflare só entrega o app
-        para abrir no seu celular.
+        No Supabase, com servidores em São Paulo. A Cloudflare entrega o app para
+        abrir no seu celular.
       </p>
       <h2>Por quanto tempo</h2>
       <p>
-        Enquanto você for aluno. Se ficar 6 meses sem usar, tudo é apagado.
+        Enquanto você for aluno. Quando você deixar de ser aluno, seus dados são
+        apagados a pedido ou depois de 6 meses sem uso (a limpeza automática
+        ainda está sendo implantada).
       </p>
       <h2>Seus direitos</h2>
       <p>
-        Você pode ver, corrigir e apagar seus dados e retirar o seu consentimento
-        quando quiser. É só pedir pelo e-mail {EMAIL_CONTATO}.
+        Você pode ver, corrigir e apagar seus dados e pedir a exclusão; sem os
+        dados não é possível usar o app. É só pedir pelo e-mail {EMAIL_CONTATO}.
       </p>
       <h2>Um pedido</h2>
-      <p>
-        Não escreva dados de saúde (dores, lesões, remédios) nas anotações.
-        Isso fica com o professor, na conversa com ele.
-      </p>
+      <p>Não escreva dados de saúde (dores, lesões, remédios) nas anotações.</p>
       <p className="texto-secundario">Versão de {dataPorExtenso(VERSAO_PRIVACIDADE)}.</p>
       {cliente && aoAceitar && (
         <>

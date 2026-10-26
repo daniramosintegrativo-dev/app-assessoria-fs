@@ -15,6 +15,18 @@ describe('Privacidade', () => {
     expect(screen.getByRole('button', { name: 'Li e aceito' })).toBeInTheDocument()
   })
 
+  it('traz responsável, retenção, quem vê, base legal e direitos do texto aprovado', () => {
+    render(<Privacidade />)
+    expect(screen.getByText(/Responsável: .+ \(.+\), da Físico Sagrado\./)).toBeInTheDocument()
+    expect(screen.getByText(/a limpeza automática ainda está sendo implantada/)).toBeInTheDocument()
+    expect(screen.getByText(/Supabase e Cloudflare\) guardam os dados para nós, sem uso próprio/)).toBeInTheDocument()
+    expect(screen.getByText(/registros técnicos de acesso \(data de login, endereço IP\)/)).toBeInTheDocument()
+    expect(screen.getByText(/prestar o serviço de assessoria que você contratou/)).toBeInTheDocument()
+    expect(screen.getByText(/pedir a exclusão; sem os dados não é possível usar o app/)).toBeInTheDocument()
+    expect(screen.queryByText(/retirar o seu consentimento/)).not.toBeInTheDocument()
+    expect(screen.queryByText(/na conversa com ele/)).not.toBeInTheDocument()
+  })
+
   it('aceitar chama a função do banco com a versão e avisa o app', async () => {
     const { cliente, falso } = criarClienteFalso()
     const aoAceitar = vi.fn()

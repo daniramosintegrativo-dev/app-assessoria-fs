@@ -130,3 +130,14 @@ migração e em `src/lib/privacidade.ts`; todo aluno aceita de novo. O professor
 não precisa aceitar. O consentimento de uso de imagem fica para quando existir
 vídeo. Texto revisável por profissional de direito; e-mail de contato a definir.
 Origem: issue 17.
+
+Atualização (2026-10-28): versão do texto passou a 2026-10-28 (retenção e
+"quem vê" corrigidos; responsável identificado). A versão no banco tem uma
+fonte só, `versao_privacidade_atual()`. Cada aceite entra em
+`aceites_privacidade` (histórico: aluno, versão, data), gravado só por
+`aceitar_privacidade()`; aluno vê os próprios, professor vê todos.
+Base legal: execução do serviço de assessoria contratado (não consentimento
+livre); por isso o texto diz que sem os dados não é possível usar o app.
+Pendências: preencher responsável, CPF/CNPJ e e-mail (e religar o teste
+`it.skip`); revisão por profissional de direito; a limpeza automática de 6
+meses ainda não existe.
