@@ -10,9 +10,9 @@ insert into auth.users (id, email) values
   ('00000000-0000-0000-0000-0000000000e4', 'alunoe4@teste');
 update public.perfis set papel = 'professor', ativo = true
   where id = '00000000-0000-0000-0000-0000000000e0';
-update public.perfis set ativo = true
+update public.perfis set ativo = true, privacidade_versao = '2026-10-27'
   where id in ('00000000-0000-0000-0000-0000000000e1', '00000000-0000-0000-0000-0000000000e2');
-update public.perfis set ativo = true, precisa_trocar_senha = true
+update public.perfis set ativo = true, precisa_trocar_senha = true, privacidade_versao = '2026-10-27'
   where id = '00000000-0000-0000-0000-0000000000e4';
 -- Anotações semeadas pelo serviço (ignora o RLS). A do e2 serve de "alheia".
 insert into public.anotacoes (aluno_id, letra, data, texto, atualizado_em) values

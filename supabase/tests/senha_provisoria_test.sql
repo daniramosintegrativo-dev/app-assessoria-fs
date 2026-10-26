@@ -5,7 +5,7 @@ insert into auth.users (id, email) values
   ('00000000-0000-0000-0000-0000000000b1', 'alunob1@teste'),
   ('00000000-0000-0000-0000-0000000000b2', 'alunob2@teste');
 -- Os dois ativos e com troca pendente (como a Edge Function deixa).
-update public.perfis set ativo = true, precisa_trocar_senha = true
+update public.perfis set ativo = true, precisa_trocar_senha = true, privacidade_versao = '2026-10-27'
   where id in ('00000000-0000-0000-0000-0000000000b1', '00000000-0000-0000-0000-0000000000b2');
 
 -- 1. A coluna nasce falsa por padrão.

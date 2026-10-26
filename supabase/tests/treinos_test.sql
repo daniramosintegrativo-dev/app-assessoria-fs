@@ -10,9 +10,9 @@ insert into auth.users (id, email) values
   ('00000000-0000-0000-0000-0000000000d4', 'alunod4@teste');
 update public.perfis set papel = 'professor', ativo = true
   where id = '00000000-0000-0000-0000-0000000000d0';
-update public.perfis set ativo = true
+update public.perfis set ativo = true, privacidade_versao = '2026-10-27'
   where id in ('00000000-0000-0000-0000-0000000000d1', '00000000-0000-0000-0000-0000000000d2');
-update public.perfis set ativo = true, precisa_trocar_senha = true
+update public.perfis set ativo = true, precisa_trocar_senha = true, privacidade_versao = '2026-10-27'
   where id = '00000000-0000-0000-0000-0000000000d4';
 -- Treinos semeados pelo serviço (ignora o RLS).
 insert into public.treinos (aluno_id, letra, texto, atualizado_em) values
