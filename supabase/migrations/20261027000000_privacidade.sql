@@ -14,7 +14,7 @@ alter table public.perfis
 create function public.versao_privacidade_atual()
 returns text
 language sql
-immutable
+stable
 set search_path = ''
 as $$ select '2026-10-28'::text $$;
 
@@ -35,7 +35,7 @@ grant all on table public.aceites_privacidade to service_role;
 grant select on table public.aceites_privacidade to authenticated;
 create policy aceites_privacidade_select on public.aceites_privacidade
   for select to authenticated
-  using (public.e_professor() or aluno_id = auth.uid());
+  using ((select public.e_professor()) or aluno_id = (select auth.uid()));
 
 -- Grava o aceite do próprio usuário (e só dele). Recusa versão que não
 -- seja a atual. security definer: o app não tem update nem insert.

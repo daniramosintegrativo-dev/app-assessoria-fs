@@ -138,6 +138,5 @@ fonte só, `versao_privacidade_atual()`. Cada aceite entra em
 `aceitar_privacidade()`; aluno vê os próprios, professor vê todos.
 Base legal: execução do serviço de assessoria contratado (não consentimento
 livre); por isso o texto diz que sem os dados não é possível usar o app.
-Pendências: preencher responsável, CPF/CNPJ e e-mail (e religar o teste
-`it.skip`); revisão por profissional de direito; a limpeza automática de 6
-meses ainda não existe.
+Pendências: revisão por profissional de direito; a limpeza automática de 6
+meses ainda não existe (issue 18).

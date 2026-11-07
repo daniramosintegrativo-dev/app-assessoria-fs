@@ -1,5 +1,5 @@
-// Versão do aviso de privacidade. Ao mudar o texto, mude aqui E na migração
-// (aceitar_privacidade e e_aluno_ativo): todo aluno terá de aceitar de novo.
+// Versão do aviso de privacidade. Ao mudar o texto, mude aqui E numa nova
+// migração que recrie public.versao_privacidade_atual(): todo aluno terá de aceitar de novo.
 export const VERSAO_PRIVACIDADE = '2026-10-28'
 
 // Responsável pelos dados (nome e CPF/CNPJ).
