@@ -119,3 +119,24 @@ LGPD: texto livre; orientar o aluno a não escrever dados de saúde. A política
 privacidade (issue 17/18) deve citar as anotações; elas entram na limpeza de 6
 meses de inatividade (P12).
 Origem: issue 07 (resposta do professor à P1).
+
+## D16 — Aceite de privacidade obrigatório e versionado (2026-10-27)
+O aluno só acessa o conteúdo depois de aceitar a versão atual do aviso de
+privacidade (`docs/PRIVACIDADE.md`). O aceite (versão + data) fica no perfil e
+o bloqueio é no banco: `e_aluno_ativo()` exige a versão atual, então sem aceite
+nenhuma política de conteúdo libera nada. Só a função `aceitar_privacidade()`
+grava o aceite, e só para o próprio usuário. Texto novo = mudar a versão na
+migração e em `src/lib/privacidade.ts`; todo aluno aceita de novo. O professor
+não precisa aceitar. O consentimento de uso de imagem fica para quando existir
+vídeo. Texto revisável por profissional de direito. Responsável: Daniel Augusto Maciel Ramos (CNPJ 54.216.793/0001-00); contato: fisicosagradoassessoria@gmail.com (2026-11-07).
+Origem: issue 17.
+
+Atualização (2026-10-28): versão do texto passou a 2026-10-28 (retenção e
+"quem vê" corrigidos; responsável identificado). A versão no banco tem uma
+fonte só, `versao_privacidade_atual()`. Cada aceite entra em
+`aceites_privacidade` (histórico: aluno, versão, data), gravado só por
+`aceitar_privacidade()`; aluno vê os próprios, professor vê todos.
+Base legal: execução do serviço de assessoria contratado (não consentimento
+livre); por isso o texto diz que sem os dados não é possível usar o app.
+Pendências: revisão por profissional de direito; a limpeza automática de 6
+meses ainda não existe (issue 18).

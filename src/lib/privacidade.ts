@@ -1,0 +1,10 @@
+// Versão do aviso de privacidade. Ao mudar o texto, mude aqui E numa nova
+// migração que recrie public.versao_privacidade_atual(): todo aluno terá de aceitar de novo.
+export const VERSAO_PRIVACIDADE = '2026-10-28'
+
+// Responsável pelos dados (nome e CPF/CNPJ).
+export const RESPONSAVEL_NOME = 'Daniel Augusto Maciel Ramos'
+export const RESPONSAVEL_DOCUMENTO = 'CNPJ 54.216.793/0001-00'
+
+// E-mail para pedidos sobre dados (ver, corrigir, apagar).
+export const EMAIL_CONTATO = 'fisicosagradoassessoria@gmail.com'
