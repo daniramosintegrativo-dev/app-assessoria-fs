@@ -128,7 +128,7 @@ nenhuma política de conteúdo libera nada. Só a função `aceitar_privacidade(
 grava o aceite, e só para o próprio usuário. Texto novo = mudar a versão na
 migração e em `src/lib/privacidade.ts`; todo aluno aceita de novo. O professor
 não precisa aceitar. O consentimento de uso de imagem fica para quando existir
-vídeo. Texto revisável por profissional de direito; e-mail de contato a definir.
+vídeo. Texto revisável por profissional de direito. Responsável: Daniel Augusto Maciel Ramos (CNPJ 54.216.793/0001-00); contato: fisicosagradoassessoria@gmail.com (2026-11-07).
 Origem: issue 17.
 
 Atualização (2026-10-28): versão do texto passou a 2026-10-28 (retenção e
