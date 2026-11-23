@@ -140,3 +140,8 @@ Base legal: execução do serviço de assessoria contratado (não consentimento
 livre); por isso o texto diz que sem os dados não é possível usar o app.
 Pendências: revisão por profissional de direito; a limpeza automática de 6
 meses ainda não existe (issue 18).
+
+## D17 — Custo do Bunny Stream aprovado (2026-11-23)
+O professor aprovou o Bunny Stream (mínimo US$ 1/mês; estimativa US$ 2 a 6/mês,
+total do app ~R$ 15 a 37/mês, dentro do teto de R$ 50 da D2). Prioridade mudou:
+os vídeos (issues 09 a 13) vêm antes da issue 08 (abdominais).
